@@ -49,6 +49,32 @@ RESULT_COPY = {
     },
 }
 
+VERSION_LOG = [
+    {
+        "versi": "v1.0",
+        "tanggal": "•",
+        "perubahan": "Rilis awal: unggah gambar + prediksi Custom CNN, tampilan dasar.",
+    },
+    {
+        "versi": "v2.0",
+        "tanggal": "•",
+        "perubahan": (
+            "UI baru dengan hero header, kartu hasil ramah-pengguna (bahasa natural "
+            "bukan sekadar label), confidence bar, opsi ambil foto via kamera, dan "
+            "halaman Tentang Model terpisah untuk detail teknis."
+        ),
+    },
+    {
+        "versi": "v2.1 (Final)",
+        "tanggal": "•",
+        "perubahan": (
+            "Menghapus opsi ambil foto via kamera (fokus upload saja), menambahkan "
+            "penjelasan visual Grad-CAM yang menyoroti area gambar paling berpengaruh "
+            "terhadap keputusan model beserta deskripsi lokasinya dalam bahasa natural."
+        ),
+    },
+]
+
 st.set_page_config(page_title="Klasifikasi Apple vs Orange", page_icon="🍎", layout="centered")
 
 # --------------------------------------------------------------------------------------
@@ -107,6 +133,19 @@ st.markdown(
         padding-top: 1rem;
         border-top: 1px solid #E2E8F0;
     }
+
+    /* Riwayat versi: tabel bersih, konsisten dengan gaya kartu di atas */
+    .version-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.5rem; }
+    .version-table th {
+        text-align: left; padding: 0.6rem 0.75rem; border-bottom: 2px solid #E2E8F0;
+        color: #64748B; font-weight: 600; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .version-table td {
+        padding: 0.85rem 0.75rem; border-bottom: 1px solid #E2E8F0; vertical-align: top; color: #334155;
+    }
+    .version-table tr:last-child td { border-bottom: none; }
+    .version-table td.version-col { font-weight: 700; white-space: nowrap; color: #0F172A; }
+    .version-table td.date-col { color: #94A3B8; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -271,22 +310,22 @@ if page == "Tentang Model":
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.markdown("**🧾 Riwayat Versi**")
-    st.table(
-        {
-            "Versi": ["v1.0", "v2.0", "v2.1 (Final)"],
-            "Tanggal": ["-", "-", "-"],
-            "Perubahan": [
-                "Rilis awal: unggah gambar + prediksi Custom CNN, tampilan dasar.",
-                "UI baru dengan hero header, kartu hasil ramah-pengguna (bahasa natural "
-                "bukan sekadar label), confidence bar, opsi ambil foto via kamera, dan "
-                "halaman Tentang Model terpisah untuk detail teknis.",
-                "Menghapus opsi ambil foto via kamera (fokus upload saja), menambahkan "
-                "penjelasan visual Grad-CAM yang menyoroti area gambar paling berpengaruh "
-                "terhadap keputusan model beserta deskripsi lokasinya dalam bahasa natural.",
-            ],
-            "Screenshot": ["_(lampirkan di sini)_"] * 3,
-        }
+    rows = []
+    for v in VERSION_LOG:
+        rows.append(
+            f'<tr>'
+            f'<td class="version-col">{v["versi"]}</td>'
+            f'<td class="date-col">{v["tanggal"]}</td>'
+            f'<td>{v["perubahan"]}</td>'
+            f'</tr>'
+        )
+    version_html = (
+        '<table class="version-table">'
+        '<thead><tr><th>Versi</th><th>Tanggal</th><th>Perubahan</th></tr></thead>'
+        '<tbody>' + "".join(rows) + '</tbody>'
+        '</table>'
     )
+    st.markdown(version_html, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ========================================================================================
