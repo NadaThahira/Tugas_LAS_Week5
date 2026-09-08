@@ -139,6 +139,76 @@ def predict(model, image: Image.Image, threshold: float):
     return label, confidence, latency
 
 
+def _find_last_conv_layer(model):
+    """Cari layer Conv2D terakhir secara otomatis, tidak bergantung pada nama layer."""
+    last_name = None
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.layers.Conv2D):
+            last_name = layer.name
+    return last_name
+
+
+@st.cache_resource(show_spinner=False)
+def build_gradcam_model(_model, conv_layer_name: str):
+    grad_model = tf.keras.models.Model(
+        inputs=_model.inputs,
+        outputs=[_model.get_layer(conv_layer_name).output, _model.output],
+    )
+    return grad_model
+
+
+def generate_gradcam(model, x: np.ndarray, conv_layer_name: str):
+    """Menghasilkan heatmap Grad-CAM (nilai 0-1, ukuran sama dengan feature map)."""
+    grad_model = build_gradcam_model(model, conv_layer_name)
+    with tf.GradientTape() as tape:
+        conv_output, prediction = grad_model(x)
+        loss = prediction[:, 0]  # output sigmoid tunggal
+
+    grads = tape.gradient(loss, conv_output)
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+    conv_output = conv_output[0]
+    heatmap = tf.reduce_sum(conv_output * pooled_grads, axis=-1)
+    heatmap = tf.maximum(heatmap, 0) / (tf.reduce_max(heatmap) + 1e-8)
+    return heatmap.numpy()
+
+
+def overlay_heatmap(image: Image.Image, heatmap: np.ndarray) -> Image.Image:
+    """Tempel heatmap Grad-CAM (warna panas) di atas gambar asli."""
+    heatmap_img = Image.fromarray(np.uint8(255 * heatmap)).resize(image.size)
+    heatmap_arr = np.array(heatmap_img)
+
+    # Colormap sederhana biru -> kuning -> merah tanpa dependensi matplotlib
+    r = np.clip(heatmap_arr * 2, 0, 255)
+    g = np.clip(510 - heatmap_arr * 2, 0, 255) * (heatmap_arr > 128)
+    b = np.clip(255 - heatmap_arr * 2, 0, 255)
+    heat_rgb = np.stack([r, g, b], axis=-1).astype(np.uint8)
+
+    base = np.array(image.convert("RGB").resize(image.size), dtype=np.float32)
+    heat_rgb = heat_rgb.astype(np.float32)
+    alpha = (heatmap_arr / 255.0 * 0.55)[..., None]
+    blended = base * (1 - alpha) + heat_rgb * alpha
+    return Image.fromarray(blended.astype(np.uint8))
+
+
+def describe_focus_area(heatmap: np.ndarray) -> str:
+    """Ubah lokasi titik fokus heatmap jadi deskripsi bahasa natural."""
+    ys, xs = np.mgrid[0:heatmap.shape[0], 0:heatmap.shape[1]]
+    total = heatmap.sum() + 1e-8
+    cy = float((ys * heatmap).sum() / total) / heatmap.shape[0]
+    cx = float((xs * heatmap).sum() / total) / heatmap.shape[1]
+
+    vert = "atas" if cy < 0.4 else ("bawah" if cy > 0.6 else "tengah")
+    horiz = "kiri" if cx < 0.4 else ("kanan" if cx > 0.6 else "tengah")
+
+    if vert == "tengah" and horiz == "tengah":
+        return "bagian tengah gambar"
+    if vert == "tengah":
+        return f"bagian {horiz} gambar"
+    if horiz == "tengah":
+        return f"bagian {vert} gambar"
+    return f"bagian {vert}-{horiz} gambar"
+
+
 # --------------------------------------------------------------------------------------
 # SESSION STATE
 # --------------------------------------------------------------------------------------
@@ -203,15 +273,18 @@ if page == "Tentang Model":
     st.markdown("**🧾 Riwayat Versi**")
     st.table(
         {
-            "Versi": ["v1.0", "v2.0 (Final)"],
-            "Tanggal": ["-", "-"],
+            "Versi": ["v1.0", "v2.0", "v2.1 (Final)"],
+            "Tanggal": ["-", "-", "-"],
             "Perubahan": [
-                "Rilis awal: unggah/foto gambar + prediksi Custom CNN, tampilan dasar.",
+                "Rilis awal: unggah gambar + prediksi Custom CNN, tampilan dasar.",
                 "UI baru dengan hero header, kartu hasil ramah-pengguna (bahasa natural "
                 "bukan sekadar label), confidence bar, opsi ambil foto via kamera, dan "
                 "halaman Tentang Model terpisah untuk detail teknis.",
+                "Menghapus opsi ambil foto via kamera (fokus upload saja), menambahkan "
+                "penjelasan visual Grad-CAM yang menyoroti area gambar paling berpengaruh "
+                "terhadap keputusan model beserta deskripsi lokasinya dalam bahasa natural.",
             ],
-            "Screenshot": ["_(lampirkan di sini)_"] * 2,
+            "Screenshot": ["_(lampirkan di sini)_"] * 3,
         }
     )
     st.markdown("</div>", unsafe_allow_html=True)
@@ -225,7 +298,7 @@ else:
         <div class="hero">
             <div class="icon">🍎</div>
             <h1>Klasifikasi Apple vs Orange</h1>
-            <p>Unggah atau foto buahmu untuk mengetahui apakah itu apel atau jeruk.</p>
+            <p>Unggah foto buahmu untuk mengetahui apakah itu apel atau jeruk.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -242,21 +315,13 @@ else:
     # Layar 1: input gambar
     elif st.session_state.image is None:
         st.markdown("<div class='card'>", unsafe_allow_html=True)
-        tab_camera, tab_upload = st.tabs(["📷 Ambil Foto", "📁 Upload Foto"])
-
-        with tab_camera:
-            captured = st.camera_input("Ambil foto buah", label_visibility="collapsed")
-            if captured is not None:
-                st.session_state.image = Image.open(captured)
-                st.rerun()
-
-        with tab_upload:
-            uploaded = st.file_uploader(
-                "Pilih gambar buah", type=["jpg", "jpeg", "png"], label_visibility="collapsed"
-            )
-            if uploaded is not None:
-                st.session_state.image = Image.open(uploaded)
-                st.rerun()
+        st.markdown("**📁 Upload foto buah**")
+        uploaded = st.file_uploader(
+            "Pilih gambar buah", type=["jpg", "jpeg", "png"], label_visibility="collapsed"
+        )
+        if uploaded is not None:
+            st.session_state.image = Image.open(uploaded)
+            st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
     # Layar 2 & 3: preview, klasifikasi, hasil
@@ -297,6 +362,37 @@ else:
                     "Keyakinan model rendah. Coba gunakan foto dengan pencahayaan lebih "
                     "jelas dan latar belakang polos."
                 )
+
+            # ---- Alasan visual (Grad-CAM) ----
+            with st.expander("🔎 Kenapa model bilang begitu?"):
+                try:
+                    conv_layer_name = _find_last_conv_layer(model)
+                    x = preprocess(st.session_state.image)
+                    heatmap = generate_gradcam(model, x, conv_layer_name)
+                    overlay = overlay_heatmap(st.session_state.image, heatmap)
+                    focus_area = describe_focus_area(heatmap)
+
+                    st.image(
+                        overlay,
+                        caption="Area yang paling memengaruhi keputusan model (merah = paling berpengaruh)",
+                        use_container_width=True,
+                    )
+                    st.write(
+                        f"Model paling fokus pada **{focus_area}** dari gambar untuk "
+                        f"memutuskan bahwa ini **{label}**, dengan tingkat keyakinan "
+                        f"**{confidence:.0%}**. Semakin merah suatu area, semakin besar "
+                        "pengaruhnya terhadap keputusan tersebut."
+                    )
+                    st.caption(
+                        "Visualisasi ini dihasilkan dengan teknik Grad-CAM, bukan penjelasan "
+                        "berbasis aturan — jadi menunjukkan pola piksel yang dipelajari model, "
+                        "bukan alasan seperti \"warna merah\" atau \"bentuk bulat\" secara eksplisit."
+                    )
+                except Exception:
+                    st.info(
+                        "Penjelasan visual tidak tersedia untuk gambar ini. Prediksi tetap "
+                        "valid, hanya visualisasi alasannya yang gagal dibuat."
+                    )
 
             st.button("↻ Uji gambar lain", on_click=reset, use_container_width=True)
 
