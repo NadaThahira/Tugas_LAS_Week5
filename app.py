@@ -378,11 +378,11 @@ def render_diagnosis():
                 """
                 <div class="card">
                 <b>Panduan Penggunaan</b>
-                <ul class="tips-list">
+                <ol class="tips-list">
                     <li>Klik kotak di atas, atau tarik dan lepas foto buah.</li>
                     <li>Gunakan foto <b>close-up satu buah</b> dengan pencahayaan cukup dan latar polos.</li>
                     <li>Konfirmasi foto terlebih dahulu, kemudian sistem akan mengklasifikasikan dan menjelaskan alasannya.</li>
-                </ul>
+                </ol>
                 </div>
                 """,
                 unsafe_allow_html=True,
