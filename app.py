@@ -45,18 +45,7 @@ FRUIT_INFO = {
 MODEL_INFO = {
     "accuracy": 0.9313,
     "f1": 0.9308,
-    "params": "157,473",
-    "epochs": 47,
 }
-
-VERSION_LOG = [
-    {"versi": "v1.0", "tanggal": "-", "perubahan": "Rilis awal: unggah gambar + prediksi Custom CNN, tampilan dasar Streamlit."},
-    {"versi": "v2.0", "tanggal": "-", "perubahan": "UI baru dengan hero header, kartu hasil ramah-pengguna, confidence bar, dan halaman Tentang Model terpisah."},
-    {"versi": "v3.0", "tanggal": "-", "perubahan": "Hapus opsi kamera (fokus upload), tambah penjelasan alasan prediksi berbasis analisis warna dominan gambar, dukungan dark mode."},
-    {"versi": "v4.0", "tanggal": "-", "perubahan": "Desain ulang total mengikuti pola UI/UX AppleOrange Dx: tema terang/gelap eksplisit, indikator langkah 1-2, sidebar navigasi Diagnosis/Tentang Aplikasi, kartu hasil dan rincian keyakinan per kelas."},
-    {"versi": "v5.0", "tanggal": "-", "perubahan": "Hapus seluruh ikon emotikon (diganti simbol formal), ganti label navigasi Diagnosis menjadi Recognition dengan sorotan warna lebih gelap saat aktif, bahasa dibuat lebih formal, tipografi diperbesar dan ditebalkan, serta teks konfirmasi foto disederhanakan."},
-    {"versi": "v6.0 (final)", "tanggal": "-", "perubahan": "Selaraskan UI/UX dengan pola TomaLeaf Dx: sidebar tanpa ikon dengan navigasi bertanda '›', kartu konfirmasi foto yang lebih ringkas, dan pengecekan warna dominan gambar (indikasi buah) sebelum gambar dikirim ke model. Perbaiki aturan warna teks pada kondisi hover di sidebar yang sebelumnya membuat teks putih tak terlihat di atas latar terang."},
-]
 
 # ----------------------------------------------------------------------------
 # TEMA (light & dark didefinisikan eksplisit, tidak bergantung tema bawaan Streamlit)
@@ -132,11 +121,6 @@ st.markdown(
     .barrow-fill {{ height: 100%; border-radius: 6px; }}
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
 
-    .version-row {{ border-left: 3px solid {t['primary']}; padding: 0.2rem 0 0.2rem 1rem; margin-bottom: 1rem; }}
-    .version-tag {{ display: inline-block; background: {t['primary']}; color: {t['primary_text']} !important;
-                     font-size: 0.76rem; padding: 0.12rem 0.6rem; border-radius: 20px; margin-right: 0.5rem; }}
-    .version-date {{ color: {t['muted']} !important; font-size: 0.8rem; }}
-
     /* Komponen native Streamlit: uploader, tombol, expander */
     [data-testid="stFileUploaderDropzone"] {{
         background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
@@ -169,16 +153,16 @@ st.markdown(
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
     section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] label,
     section[data-testid="stSidebar"] div.sidebar-brand {{ color: {t['text']} !important; }}
-    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; }}
+    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: right; }}
     section[data-testid="stSidebar"] hr {{ border-color: {t['border']} !important; border-top: 1px solid {t['border']} !important; opacity: 1 !important; margin: 1rem 0 !important; }}
 
-    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema */
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kanan */
     section[data-testid="stSidebar"] .stButton button {{
         background: transparent !important; color: {t['text']} !important; border: none !important;
-        text-align: left !important; justify-content: flex-start !important; font-weight: 500 !important;
+        text-align: right !important; justify-content: flex-end !important; font-weight: 500 !important;
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
     }}
-    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: left !important; }}
+    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: right !important; }}
 
     /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
@@ -490,24 +474,9 @@ def render_about():
         unsafe_allow_html=True,
     )
 
-    m1, m2, m3, m4 = st.columns(4)
+    _, m1, m2, _ = st.columns([1, 2, 2, 1])
     m1.metric("Accuracy", f"{MODEL_INFO['accuracy']*100:.2f}%")
     m2.metric("F1 Score", f"{MODEL_INFO['f1']:.4f}")
-    m3.metric("Total Params", MODEL_INFO["params"])
-    m4.metric("Epochs", MODEL_INFO["epochs"])
-
-    with st.expander("Riwayat Versi", expanded=False):
-        rows = []
-        for v in VERSION_LOG:
-            rows.append(
-                f'<div class="version-row">'
-                f'<span class="version-tag">{v["versi"]}</span>'
-                f'<span class="version-date">{v["tanggal"]}</span>'
-                f'<p style="margin:0.3rem 0 0 0;">{v["perubahan"]}</p>'
-                f'</div>'
-            )
-        version_html = '<div class="scroll-box">' + "".join(rows) + "</div>"
-        st.markdown(version_html, unsafe_allow_html=True)
 
     st.markdown(
         """
