@@ -125,6 +125,11 @@ st.markdown(
     [data-testid="stFileUploaderDropzone"] {{
         background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
         padding: 1rem 1.2rem !important;
+        /* Streamlit otomatis berpindah ke tampilan ringkas (tombol "Upload" saja) saat dropzone
+           terukur sempit. Kita paksa lebar minimum supaya tampilan lengkap ("Drag and drop...",
+           ikon awan, tombol "Browse files") tetap dipakai. Efek samping: bisa memicu scroll
+           horizontal jika layar sangat sempit (mis. HP kecil) — beri tahu saya jika itu terjadi. */
+        min-width: 420px !important;
     }}
     [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
     [data-testid="stFileUploaderDropzoneInstructions"] span {{ font-weight: 700 !important; }}
