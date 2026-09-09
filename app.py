@@ -1,5 +1,5 @@
 """
-AppleOrange Dx — Klasifikasi Apple vs Orange
+FruitID — Apple & Orange Recognition
 Deployment model: CNN Custom
 Nada Thahira Sosa — 2601
 """
@@ -15,8 +15,8 @@ import tensorflow as tf
 # KONFIGURASI HALAMAN
 # ----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="AppleOrange Dx — Klasifikasi Apple vs Orange",
-    page_icon="❖",
+    page_title="FruitID — Apple & Orange Recognition",
+    page_icon="🍎",
     layout="centered",
     initial_sidebar_state="expanded",
 )
@@ -91,10 +91,10 @@ st.markdown(
         color: {t['text']} !important;
     }}
 
-    .hero {{ text-align: center; padding: 0.6rem 1rem 0.4rem 1rem; }}
+    .hero {{ text-align: right; padding: 0.6rem 1rem 0.4rem 1rem; }}
     .hero-title {{ font-size: 2.1rem; font-weight: 800; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
     .hero-tagline {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
-    .hero-sub {{ font-size: 0.98rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.55; }}
+    .hero-sub {{ font-size: 0.98rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 0 0 auto; line-height: 1.55; }}
 
     .steps {{ display: flex; justify-content: center; gap: 0.5rem; margin: 1.2rem 0 1.4rem 0; flex-wrap: wrap; }}
     .step {{ display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: {t['muted']} !important;
@@ -290,9 +290,9 @@ def render_diagnosis():
     st.markdown(
         f"""
         <div class="hero">
-            <div style="font-size:1.9rem; font-weight:800; color:{t['primary']};">❖</div>
-            <div class="hero-title">AppleOrange Dx</div>
-            <div class="hero-tagline">Klasifikasi Apple vs Orange</div>
+            <div style="font-size:1.9rem;">🍎</div>
+            <div class="hero-title">FruitID</div>
+            <div class="hero-tagline">Apple & Orange Recognition</div>
             <div class="hero-sub">Unggah foto buah Anda untuk mengetahui apakah itu apel atau jeruk,
             lengkap dengan alasan di balik prediksinya.</div>
         </div>
@@ -445,20 +445,20 @@ def render_diagnosis():
             st.session_state.probs = None
             st.rerun()
 
-    st.caption("AppleOrange Dx · Model: CNN Custom · Nada Thahira Sosa — 2601")
+    st.caption("FruitID · Model: CNN Custom · Nada Thahira Sosa — 2601")
 
 
 # ----------------------------------------------------------------------------
 # HALAMAN: TENTANG APLIKASI
 # ----------------------------------------------------------------------------
 def render_about():
-    st.markdown('<div class="hero-title" style="text-align:left; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-title" style="text-align:right; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
         <div class="card">
-            <b>Tentang AppleOrange Dx</b>
-            <p style="margin:0.5rem 0 0.4rem 0;">AppleOrange Dx merupakan aplikasi untuk membantu
+            <b>Tentang FruitID</b>
+            <p style="margin:0.5rem 0 0.4rem 0;">FruitID merupakan aplikasi untuk membantu
             mengidentifikasi apakah sebuah foto buah adalah apel atau jeruk.</p>
             <p style="margin:0;">Aplikasi ini memberikan alasan prediksi berbasis analisis warna
             dominan gambar, agar hasil klasifikasi lebih mudah dipahami.</p>
@@ -482,7 +482,7 @@ def render_about():
         """
         <div class="card">
             <b>Informasi Aplikasi</b>
-            <p style="margin:0.6rem 0 0 0;">AppleOrange Dx<br>Model: CNN Custom<br>Nada Thahira Sosa — 2601</p>
+            <p style="margin:0.6rem 0 0 0;">FruitID<br>Model: CNN Custom<br>Nada Thahira Sosa — 2601</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -493,7 +493,7 @@ def render_about():
 # SIDEBAR — NAVIGASI UTAMA
 # ----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown('<div class="sidebar-brand">AppleOrange Dx</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-brand">FruitID</div>', unsafe_allow_html=True)
 
     if st.button("› Recognition", key="nav_diagnosis", use_container_width=True,
                  type="primary" if st.session_state.page == "diagnosis" else "secondary"):
