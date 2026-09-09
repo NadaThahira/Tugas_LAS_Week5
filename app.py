@@ -156,11 +156,20 @@ st.markdown(
     .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: center; }}
     section[data-testid="stSidebar"] hr {{ border-color: {t['border']} !important; border-top: 1px solid {t['border']} !important; opacity: 1 !important; margin: 1rem 0 !important; }}
 
-    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri */
+    /* Pastikan konten sidebar (termasuk tombol) benar-benar rata kiri-kanan penuh, tanpa celah di sisi kanan */
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"],
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+    section[data-testid="stSidebar"] [data-testid="element-container"],
+    section[data-testid="stSidebar"] [data-testid="stButton"] {{
+        width: 100% !important;
+    }}
+
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri, lebar penuh */
     section[data-testid="stSidebar"] .stButton button {{
         background: transparent !important; color: {t['text']} !important; border: none !important;
         text-align: left !important; justify-content: flex-start !important; font-weight: 500 !important;
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
+        width: 100% !important; box-sizing: border-box !important; margin: 0 !important;
     }}
     section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: left !important; }}
 
@@ -290,10 +299,10 @@ def render_diagnosis():
     st.markdown(
         f"""
         <div class="hero">
-            <div style="font-size:1.9rem;">🍎</div>
+            <div style="font-size:1.9rem;">🍎🍊</div>
             <div class="hero-title">FruitID</div>
             <div class="hero-tagline">Apple & Orange Recognition</div>
-            <div class="hero-sub">Unggah foto buah Anda untuk mengetahui apakah itu apel atau jeruk,
+            <div class="hero-sub">Unggah foto buah Anda untuk mengetahui apakah buah tersebut termasuk apel atau jeruk,
             lengkap dengan alasan di balik prediksinya.</div>
         </div>
         """,
