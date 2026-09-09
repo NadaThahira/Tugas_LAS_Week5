@@ -164,14 +164,22 @@ st.markdown(
         width: 100% !important;
     }}
 
-    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kanan, lebar penuh */
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri, lebar penuh */
     section[data-testid="stSidebar"] .stButton button {{
+        display: flex !important;
         background: transparent !important; color: {t['text']} !important; border: none !important;
-        text-align: right !important; justify-content: flex-end !important; font-weight: 500 !important;
+        text-align: left !important; justify-content: flex-start !important; align-items: center !important;
+        font-weight: 500 !important;
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
         width: 100% !important; box-sizing: border-box !important; margin: 0 !important;
     }}
-    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: right !important; }}
+    /* Wildcard: paksa SEMUA elemen anak di dalam tombol (apapun tag/testid-nya, termasuk
+       stMarkdownContainer bawaan Streamlit) ikut rata kiri & lebar penuh, tanpa terkecuali */
+    section[data-testid="stSidebar"] .stButton button * {{
+        color: {t['text']} !important; font-weight: 500 !important;
+        text-align: left !important; justify-content: flex-start !important;
+        width: 100% !important; display: flex !important;
+    }}
 
     /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
@@ -180,10 +188,12 @@ st.markdown(
     section[data-testid="stSidebar"] .stButton button:hover span {{ color: {t['text']} !important; }}
 
     /* Tombol nav aktif (primary): background warna utama, teks kontras terhadap warna utama itu */
-    section[data-testid="stSidebar"] button[kind="primary"] {{ background: {t['primary_dark']} !important; }}
-    section[data-testid="stSidebar"] button[kind="primary"] p,
-    section[data-testid="stSidebar"] button[kind="primary"] div,
-    section[data-testid="stSidebar"] button[kind="primary"] span {{ color: {t['primary_text']} !important; font-weight: 700 !important; }}
+    section[data-testid="stSidebar"] button[kind="primary"] {{ background: {t['primary_dark']} !important; justify-content: flex-start !important; }}
+    section[data-testid="stSidebar"] button[kind="primary"] * {{
+        color: {t['primary_text']} !important; font-weight: 700 !important;
+        text-align: left !important; justify-content: flex-start !important;
+        width: 100% !important; display: flex !important;
+    }}
 
     /* Hover pada tombol nav aktif: tetap kontras, tidak ikut jadi putih-di-atas-terang */
     section[data-testid="stSidebar"] button[kind="primary"]:hover {{ background: {t['primary']} !important; }}
