@@ -25,6 +25,7 @@ IMG_SIZE = (128, 128)
 MODEL_PATH = "custom_cnn_model.h5"
 CLASS_NAMES = {0: "Apple", 1: "Orange"}  # sesuaikan urutan label dengan training
 LOW_CONFIDENCE_THRESHOLD = 0.65
+MIN_FRUIT_COLOR_RATIO = 0.15
 
 FRUIT_INFO = {
     "Apple": {
@@ -53,7 +54,8 @@ VERSION_LOG = [
     {"versi": "v2.0", "tanggal": "-", "perubahan": "UI baru dengan hero header, kartu hasil ramah-pengguna, confidence bar, dan halaman Tentang Model terpisah."},
     {"versi": "v3.0", "tanggal": "-", "perubahan": "Hapus opsi kamera (fokus upload), tambah penjelasan alasan prediksi berbasis analisis warna dominan gambar, dukungan dark mode."},
     {"versi": "v4.0", "tanggal": "-", "perubahan": "Desain ulang total mengikuti pola UI/UX AppleOrange Dx: tema terang/gelap eksplisit, indikator langkah 1-2, sidebar navigasi Diagnosis/Tentang Aplikasi, kartu hasil dan rincian keyakinan per kelas."},
-    {"versi": "v5.0 (final)", "tanggal": "-", "perubahan": "Hapus seluruh ikon emotikon (diganti simbol formal), ganti label navigasi Diagnosis menjadi Recognition dengan sorotan warna lebih gelap saat aktif, bahasa dibuat lebih formal, tipografi diperbesar dan ditebalkan, serta teks konfirmasi foto disederhanakan."},
+    {"versi": "v5.0", "tanggal": "-", "perubahan": "Hapus seluruh ikon emotikon (diganti simbol formal), ganti label navigasi Diagnosis menjadi Recognition dengan sorotan warna lebih gelap saat aktif, bahasa dibuat lebih formal, tipografi diperbesar dan ditebalkan, serta teks konfirmasi foto disederhanakan."},
+    {"versi": "v6.0 (final)", "tanggal": "-", "perubahan": "Selaraskan UI/UX dengan pola TomaLeaf Dx: sidebar tanpa ikon dengan navigasi bertanda '›', kartu konfirmasi foto yang lebih ringkas, dan pengecekan warna dominan gambar (indikasi buah) sebelum gambar dikirim ke model. Perbaiki aturan warna teks pada kondisi hover di sidebar yang sebelumnya membuat teks putih tak terlihat di atas latar terang."},
 ]
 
 # ----------------------------------------------------------------------------
@@ -95,14 +97,15 @@ st.markdown(
     .stApp {{ background: {t['bg']} !important; }}
     .block-container {{ padding-top: 2rem; }}
 
+    /* Paksa semua teks umum ikut warna tema kita */
     .stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] {{
         color: {t['text']} !important;
     }}
 
     .hero {{ text-align: center; padding: 0.6rem 1rem 0.4rem 1rem; }}
-    .hero-title {{ font-size: 2.3rem; font-weight: 800; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
-    .hero-tagline {{ font-size: 0.88rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
-    .hero-sub {{ font-size: 1.02rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.55; }}
+    .hero-title {{ font-size: 2.1rem; font-weight: 800; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
+    .hero-tagline {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
+    .hero-sub {{ font-size: 0.98rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.55; }}
 
     .steps {{ display: flex; justify-content: center; gap: 0.5rem; margin: 1.2rem 0 1.4rem 0; flex-wrap: wrap; }}
     .step {{ display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: {t['muted']} !important;
@@ -134,6 +137,7 @@ st.markdown(
                      font-size: 0.76rem; padding: 0.12rem 0.6rem; border-radius: 20px; margin-right: 0.5rem; }}
     .version-date {{ color: {t['muted']} !important; font-size: 0.8rem; }}
 
+    /* Komponen native Streamlit: uploader, tombol, expander */
     [data-testid="stFileUploaderDropzone"] {{
         background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
         padding: 1rem 1.2rem !important;
@@ -150,26 +154,49 @@ st.markdown(
     }}
     [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; }}
     [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{ color: {t['text']} !important; }}
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary p, [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary div {{ font-weight: 700 !important; font-size: 1.05rem !important; }}
     [data-testid="stExpander"] p, [data-testid="stExpander"] li, [data-testid="stExpander"] span {{ color: {t['text']} !important; }}
 
+    /* Perkuat kontras teks tombol (beberapa versi Streamlit bungkus label di elemen anak) */
     .stButton button p, .stButton button div, .stButton button span {{ color: {t['primary_text']} !important; font-weight: 600 !important; }}
 
     .scroll-box {{ max-height: 380px; overflow-y: auto; padding-right: 6px; }}
 
     .preview-wrap img {{ border-radius: 12px; }}
 
+    /* Sidebar navigasi */
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
-    section[data-testid="stSidebar"] * {{ color: {t['text']} !important; }}
-    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 800; padding: 0.3rem 0 1rem 0; }}
+    section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] div.sidebar-brand {{ color: {t['text']} !important; }}
+    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; }}
+    section[data-testid="stSidebar"] hr {{ border-color: {t['border']} !important; border-top: 1px solid {t['border']} !important; opacity: 1 !important; margin: 1rem 0 !important; }}
+
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema */
     section[data-testid="stSidebar"] .stButton button {{
         background: transparent !important; color: {t['text']} !important; border: none !important;
         text-align: left !important; justify-content: flex-start !important; font-weight: 500 !important;
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
     }}
     section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: left !important; }}
+
+    /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
-    section[data-testid="stSidebar"] div[data-testid="baseButton-primary"] button {{ background: {t['primary_dark']} !important; }}
-    section[data-testid="stSidebar"] div[data-testid="baseButton-primary"] button p {{ color: {t['primary_text']} !important; font-weight: 700 !important; }}
+    section[data-testid="stSidebar"] .stButton button:hover p,
+    section[data-testid="stSidebar"] .stButton button:hover div,
+    section[data-testid="stSidebar"] .stButton button:hover span {{ color: {t['text']} !important; }}
+
+    /* Tombol nav aktif (primary): background warna utama, teks kontras terhadap warna utama itu */
+    section[data-testid="stSidebar"] button[kind="primary"] {{ background: {t['primary_dark']} !important; }}
+    section[data-testid="stSidebar"] button[kind="primary"] p,
+    section[data-testid="stSidebar"] button[kind="primary"] div,
+    section[data-testid="stSidebar"] button[kind="primary"] span {{ color: {t['primary_text']} !important; font-weight: 700 !important; }}
+
+    /* Hover pada tombol nav aktif: tetap kontras, tidak ikut jadi putih-di-atas-terang */
+    section[data-testid="stSidebar"] button[kind="primary"]:hover {{ background: {t['primary']} !important; }}
+    section[data-testid="stSidebar"] button[kind="primary"]:hover p,
+    section[data-testid="stSidebar"] button[kind="primary"]:hover div,
+    section[data-testid="stSidebar"] button[kind="primary"]:hover span {{ color: {t['primary_text']} !important; }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -192,6 +219,25 @@ def predict(image: Image.Image):
     batch = np.expand_dims(arr, axis=0)
     prob_orange = float(model.predict(batch, verbose=0)[0][0])
     return {"Apple": 1 - prob_orange, "Orange": prob_orange}
+
+
+def is_fruit_like(image: Image.Image) -> tuple[bool, float]:
+    """Cek cepat berbasis warna: apakah gambar didominasi warna khas apel/jeruk
+    (merah, hijau, oranye, kuning) sebelum dikirim ke model. Tidak menyentuh model sama sekali."""
+    img = image.convert("RGB").resize((100, 100))
+    arr = np.array(img).astype("float32")
+    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+
+    # Merah (apel): R dominan dibanding G dan B
+    red_mask = (r > g * 1.15) & (r > b * 1.15)
+    # Hijau (apel varietas hijau): G dominan dibanding R dan B
+    green_mask = (g > r * 1.05) & (g > b * 1.05)
+    # Oranye/kuning (jeruk): R & G tinggi, B relatif rendah
+    orange_mask = (r > b * 1.15) & (g > b * 1.0) & (r > 60) & (r < 250)
+
+    fruit_mask = red_mask | green_mask | orange_mask
+    ratio = float(np.mean(fruit_mask))
+    return ratio >= MIN_FRUIT_COLOR_RATIO, ratio
 
 
 def analyze_color_profile(image: Image.Image) -> dict:
@@ -260,7 +306,7 @@ def render_diagnosis():
     st.markdown(
         f"""
         <div class="hero">
-            <div style="font-size:2rem; font-weight:800; color:{t['primary']};">❖</div>
+            <div style="font-size:1.9rem; font-weight:800; color:{t['primary']};">❖</div>
             <div class="hero-title">AppleOrange Dx</div>
             <div class="hero-tagline">Klasifikasi Apple vs Orange</div>
             <div class="hero-sub">Unggah foto buah Anda untuk mengetahui apakah itu apel atau jeruk,
@@ -321,24 +367,30 @@ def render_diagnosis():
             st.markdown(
                 """
                 <div class="card" style="text-align:center;">
-                <b>Konfirmasi Foto</b>
-                <p style="margin:0.4rem 0 0 0;">Periksa foto sebelum memulai klasifikasi.
-                Pastikan buah terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol ×
-                di bagian atas.</p>
+                <div style="font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">Konfirmasi Foto</div>
+                <div>Periksa foto sebelum memulai klasifikasi.<br>
+                Pastikan buah terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol × di bagian atas.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            if st.button("Mulai Klasifikasi", type="primary", use_container_width=True):
-                with st.spinner("Sedang menganalisis buah..."):
-                    probs = predict(image)
-                    color_info = analyze_color_profile(image)
-                st.session_state.image_bytes = uploaded.getvalue()
-                st.session_state.probs = probs
-                st.session_state.color_info = color_info
-                st.session_state.stage = 2
-                st.rerun()
+            if st.button("Mulai Klasifikasi →", type="primary", use_container_width=True):
+                fruit_like, ratio = is_fruit_like(image)
+                if not fruit_like:
+                    st.error(
+                        f"Gambar tidak terdeteksi sebagai buah apel/jeruk (kecocokan warna khas hanya {ratio*100:.0f}%). "
+                        "Coba unggah foto close-up satu buah dengan pencahayaan yang cukup."
+                    )
+                else:
+                    with st.spinner("Sedang menganalisis buah..."):
+                        probs = predict(image)
+                        color_info = analyze_color_profile(image)
+                    st.session_state.image_bytes = uploaded.getvalue()
+                    st.session_state.probs = probs
+                    st.session_state.color_info = color_info
+                    st.session_state.stage = 2
+                    st.rerun()
 
     elif st.session_state.stage == 2:
         probs = st.session_state.probs
@@ -403,7 +455,7 @@ def render_diagnosis():
             bars_html = '<div class="scroll-box">' + "".join(bars) + "</div>"
             st.markdown(bars_html, unsafe_allow_html=True)
 
-        if st.button("Unggah Foto Lain", use_container_width=True):
+        if st.button("↻ Unggah Foto Lain", use_container_width=True):
             st.session_state.stage = 1
             st.session_state.image_bytes = None
             st.session_state.probs = None
@@ -419,7 +471,7 @@ def render_about():
     st.markdown('<div class="hero-title" style="text-align:left; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
 
     st.markdown(
-        f"""
+        """
         <div class="card">
             <b>Tentang AppleOrange Dx</b>
             <p style="margin:0.5rem 0 0.4rem 0;">AppleOrange Dx merupakan aplikasi untuk membantu
@@ -472,20 +524,23 @@ def render_about():
 # SIDEBAR — NAVIGASI UTAMA
 # ----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown('<div class="sidebar-brand">❖ AppleOrange Dx</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-brand">AppleOrange Dx</div>', unsafe_allow_html=True)
 
-    if st.button("Recognition", key="nav_diagnosis", use_container_width=True,
+    if st.button("› Recognition", key="nav_diagnosis", use_container_width=True,
                  type="primary" if st.session_state.page == "diagnosis" else "secondary"):
         st.session_state.page = "diagnosis"
         st.rerun()
 
-    if st.button("Tentang Aplikasi", key="nav_about", use_container_width=True,
+    if st.button("› Tentang Aplikasi", key="nav_about", use_container_width=True,
                  type="primary" if st.session_state.page == "about" else "secondary"):
         st.session_state.page = "about"
         st.rerun()
 
     st.markdown("---")
-    st.toggle("Mode Gelap", key="dark_mode", help="Mode gelap / terang")
+    theme_label = "Mode: Gelap" if st.session_state.dark_mode else "Mode: Terang"
+    if st.button(f"◐ {theme_label}", key="theme_toggle_btn", use_container_width=True):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
 
 # ----------------------------------------------------------------------------
 # ROUTER
