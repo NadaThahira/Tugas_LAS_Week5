@@ -129,20 +129,24 @@ st.markdown(
         box-sizing: border-box !important;
         position: relative !important;
     }}
-    /* Kotak upload di HP (mode ringkas) punya banyak ruang kosong — isi dengan teks
-       "Drag and drop here" sebagai baris tambahan di bawah tombol/keterangan ukuran file. */
-    [data-testid="stFileUploaderDropzone"]::after {{
+    /* Kotak upload di HP (mode ringkas): tambahkan "Drag and drop here" sebagai baris besar
+       tepat di atas keterangan ukuran file yang sudah ada (bukan menggantikannya) — jadi
+       barisnya: (1) Drag and drop here — lebih besar/tebal, (2) teks batas ukuran file yang
+       sudah ada sebelumnya — dibuat lebih kecil, persis seperti sebelumnya tapi diperkecil. */
+    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
         content: "Drag and drop here";
         display: block;
-        width: 100%;
-        margin-top: 0.6rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: {t['muted']} !important;
-        pointer-events: none;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: {t['text']} !important;
+        margin-bottom: 0.2rem;
     }}
     [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
-    [data-testid="stFileUploaderDropzoneInstructions"] span {{ font-weight: 700 !important; }}
+    [data-testid="stFileUploaderDropzoneInstructions"] span {{
+        font-weight: 500 !important;
+        font-size: 0.78rem !important;
+        color: {t['muted']} !important;
+    }}
     [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
     [data-testid="stFileUploaderDropzone"] button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
