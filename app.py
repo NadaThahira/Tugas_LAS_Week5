@@ -128,6 +128,19 @@ st.markdown(
         max-width: 100% !important;
         box-sizing: border-box !important;
         position: relative !important;
+        /* Susun ulang jadi kolom: teks keterangan dulu, baru tombol di bawahnya —
+           supaya strukturnya mengikuti referensi (teks di atas, tombol di bawah). */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.85rem !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        order: 1 !important;
+        width: 100% !important;
     }}
     /* Kotak upload di HP (mode ringkas): tambahkan "Drag and drop here" sebagai baris besar
        tepat di atas keterangan ukuran file yang sudah ada (bukan menggantikannya) — jadi
@@ -135,11 +148,6 @@ st.markdown(
        sudah ada sebelumnya — dibuat lebih kecil, persis seperti sebelumnya tapi diperkecil.
        Container aslinya berupa flex row (makanya sebelumnya nempel jadi satu baris) — paksa
        jadi flex column supaya dua baris ini benar-benar bertumpuk. */
-    [data-testid="stFileUploaderDropzoneInstructions"] {{
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }}
     [data-testid="stFileUploaderDropzoneInstructions"]::before {{
         content: "Drag and drop here";
         display: block;
@@ -159,6 +167,7 @@ st.markdown(
     [data-testid="stFileUploaderDropzone"] button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
         font-weight: 700 !important; border-radius: 8px !important;
+        order: 2 !important;
     }}
     /* Ikon & label DI DALAM tombol "Upload"/"Browse files" sempat ikut ketiban rule "*" di atas
        (jadi teks gelap di atas tombol oranye = kontras rendah). Paksa semua elemen anak tombol
