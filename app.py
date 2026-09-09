@@ -153,7 +153,7 @@ st.markdown(
        disembunyikan lalu diganti dengan urutan kata custom lewat ::after, karena urutan kata
        yang diminta ("JPG, PNG • Max 200MB") berbeda dari teks bawaan. */
     [data-testid="stFileUploaderDropzoneInstructions"]::before {{
-        content: "Drag & drop your image here";
+        content: "Pilih atau seret gambar untuk diunggah";
         display: block;
         font-size: 0.95rem;
         font-weight: 700;
