@@ -25,7 +25,6 @@ IMG_SIZE = (128, 128)
 MODEL_PATH = "custom_cnn_model.h5"
 CLASS_NAMES = {0: "Apple", 1: "Orange"}  # sesuaikan urutan label dengan training
 LOW_CONFIDENCE_THRESHOLD = 0.65
-MIN_FRUIT_COLOR_RATIO = 0.15
 
 FRUIT_INFO = {
     "Apple": {
@@ -273,25 +272,6 @@ def predict(image: Image.Image):
     return {"Apple": 1 - prob_orange, "Orange": prob_orange}
 
 
-def is_fruit_like(image: Image.Image) -> tuple[bool, float]:
-    """Cek cepat berbasis warna: apakah gambar didominasi warna khas apel/jeruk
-    (merah, hijau, oranye, kuning) sebelum dikirim ke model. Tidak menyentuh model sama sekali."""
-    img = image.convert("RGB").resize((100, 100))
-    arr = np.array(img).astype("float32")
-    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
-
-    # Merah (apel): R dominan dibanding G dan B
-    red_mask = (r > g * 1.15) & (r > b * 1.15)
-    # Hijau (apel varietas hijau): G dominan dibanding R dan B
-    green_mask = (g > r * 1.05) & (g > b * 1.05)
-    # Oranye/kuning (jeruk): R & G tinggi, B relatif rendah
-    orange_mask = (r > b * 1.15) & (g > b * 1.0) & (r > 60) & (r < 250)
-
-    fruit_mask = red_mask | green_mask | orange_mask
-    ratio = float(np.mean(fruit_mask))
-    return ratio >= MIN_FRUIT_COLOR_RATIO, ratio
-
-
 def analyze_color_profile(image: Image.Image) -> dict:
     """Analisis warna dominan gambar sebagai indikator visual pendukung prediksi."""
     small = image.convert("RGB").resize((64, 64))
@@ -428,21 +408,14 @@ def render_diagnosis():
             )
 
             if st.button("Mulai Klasifikasi →", type="primary", use_container_width=True):
-                fruit_like, ratio = is_fruit_like(image)
-                if not fruit_like:
-                    st.error(
-                        f"Gambar tidak terdeteksi sebagai buah apel/jeruk (kecocokan warna khas hanya {ratio*100:.0f}%). "
-                        "Coba unggah foto close-up satu buah dengan pencahayaan yang cukup."
-                    )
-                else:
-                    with st.spinner("Sedang menganalisis buah..."):
-                        probs = predict(image)
-                        color_info = analyze_color_profile(image)
-                    st.session_state.image_bytes = uploaded.getvalue()
-                    st.session_state.probs = probs
-                    st.session_state.color_info = color_info
-                    st.session_state.stage = 2
-                    st.rerun()
+                with st.spinner("Sedang menganalisis buah..."):
+                    probs = predict(image)
+                    color_info = analyze_color_profile(image)
+                st.session_state.image_bytes = uploaded.getvalue()
+                st.session_state.probs = probs
+                st.session_state.color_info = color_info
+                st.session_state.stage = 2
+                st.rerun()
 
     elif st.session_state.stage == 2:
         probs = st.session_state.probs
@@ -520,7 +493,7 @@ def render_diagnosis():
 # HALAMAN: TENTANG APLIKASI
 # ----------------------------------------------------------------------------
 def render_about():
-    st.markdown('<div class="hero-title" style="text-align:right; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-title" style="text-align:left; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
