@@ -91,10 +91,10 @@ st.markdown(
         color: {t['text']} !important;
     }}
 
-    .hero {{ text-align: right; padding: 0.6rem 1rem 0.4rem 1rem; }}
+    .hero {{ text-align: center; padding: 0.6rem 1rem 0.4rem 1rem; }}
     .hero-title {{ font-size: 2.1rem; font-weight: 800; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
     .hero-tagline {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
-    .hero-sub {{ font-size: 0.98rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 0 0 auto; line-height: 1.55; }}
+    .hero-sub {{ font-size: 0.98rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.55; }}
 
     .steps {{ display: flex; justify-content: center; gap: 0.5rem; margin: 1.2rem 0 1.4rem 0; flex-wrap: wrap; }}
     .step {{ display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: {t['muted']} !important;
@@ -153,16 +153,16 @@ st.markdown(
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
     section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] label,
     section[data-testid="stSidebar"] div.sidebar-brand {{ color: {t['text']} !important; }}
-    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: right; }}
+    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: center; }}
     section[data-testid="stSidebar"] hr {{ border-color: {t['border']} !important; border-top: 1px solid {t['border']} !important; opacity: 1 !important; margin: 1rem 0 !important; }}
 
-    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kanan */
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri */
     section[data-testid="stSidebar"] .stButton button {{
         background: transparent !important; color: {t['text']} !important; border: none !important;
-        text-align: right !important; justify-content: flex-end !important; font-weight: 500 !important;
+        text-align: left !important; justify-content: flex-start !important; font-weight: 500 !important;
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
     }}
-    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: right !important; }}
+    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: left !important; }}
 
     /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
