@@ -1,7 +1,7 @@
 """
-AppleOrange Dx — Klasifikasi Apple vs Orange
+TomaLeaf Dx — Smart Diagnosis for Tomato Leaf Diseases
 Deployment model: CNN Custom
-Nada Thahira Sosa — 2601
+Nada Thahira Sosa — 2601 — MBC Lab Week 2
 """
 
 from pathlib import Path
@@ -15,44 +15,96 @@ import tensorflow as tf
 # KONFIGURASI HALAMAN
 # ----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="AppleOrange Dx — Klasifikasi Apple vs Orange",
-    page_icon="🍎",
+    page_title="TomaLeaf Dx — Smart Diagnosis for Tomato Leaf Diseases",
+    page_icon="❖",
     layout="centered",
     initial_sidebar_state="expanded",
 )
 
-IMG_SIZE = (128, 128)
-MODEL_PATH = "custom_cnn_model.h5"
-CLASS_NAMES = {0: "Apple", 1: "Orange"}  # sesuaikan urutan label dengan training
-LOW_CONFIDENCE_THRESHOLD = 0.65
+IMG_SIZE = (224, 224)
+MODEL_PATH = "tomato_leaf_best_model.h5"
 
-FRUIT_INFO = {
-    "Apple": {
-        "nama": "Apple (Apel)",
-        "warna_khas": "Merah cerah atau hijau, tergantung varietasnya",
-        "ciri": "Bentuk bulat dengan sedikit lekukan di bagian atas (tempat tangkai), kulit cenderung mengilap dan halus.",
-        "tier": "apple",
-    },
-    "Orange": {
-        "nama": "Orange (Jeruk)",
-        "warna_khas": "Oranye pekat merata di seluruh permukaan",
-        "ciri": "Bentuk bulat dengan tekstur kulit berpori (dimpled/bertekstur), warna oranye konsisten di semua sisi.",
-        "tier": "orange",
-    },
-}
+CLASSES = [
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Spider_mites Two-spotted_spider_mite",
+    "Tomato___Target_Spot",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+    "Tomato___Tomato_mosaic_virus",
+    "Tomato___healthy",
+]
 
-MODEL_INFO = {
-    "accuracy": 0.9313,
-    "f1": 0.9308,
-    "params": "157,473",
-    "epochs": 47,
+DISEASE_INFO = {
+    "Tomato___Bacterial_spot": {
+        "nama": "Bercak Bakteri (Bacterial Spot)", "tingkat": "sedang",
+        "penyebab": "Bakteri Xanthomonas spp.",
+        "gejala": "Bercak kecil kehitaman/kecoklatan pada daun, sering dikelilingi lingkaran kuning (halo).",
+        "saran": "Buang daun yang terinfeksi, hindari penyiraman dari atas, semprot bakterisida berbasis tembaga.",
+    },
+    "Tomato___Early_blight": {
+        "nama": "Bercak Daun Awal (Early Blight)", "tingkat": "sedang",
+        "penyebab": "Jamur Alternaria solani.",
+        "gejala": "Bercak coklat berbentuk cincin konsentris (seperti target), dimulai dari daun tua bagian bawah.",
+        "saran": "Rotasi tanaman, buang daun terinfeksi, gunakan fungisida (mis. klorotalonil) sesuai dosis.",
+    },
+    "Tomato___Late_blight": {
+        "nama": "Bercak Daun Akhir (Late Blight)", "tingkat": "berat",
+        "penyebab": "Oomycete Phytophthora infestans.",
+        "gejala": "Bercak basah kehijauan-kehitaman yang cepat meluas, dapat menghancurkan tanaman dalam hitungan hari.",
+        "saran": "Segera isolasi/musnahkan tanaman terinfeksi berat, semprot fungisida sistemik, perbaiki sirkulasi udara.",
+    },
+    "Tomato___Leaf_Mold": {
+        "nama": "Jamur Daun (Leaf Mold)", "tingkat": "ringan",
+        "penyebab": "Jamur Passalora fulva (dulu Fulvia fulva).",
+        "gejala": "Bercak kuning pucat di permukaan atas daun, lapisan beludru zaitun di permukaan bawah.",
+        "saran": "Kurangi kelembapan rumah kaca/greenhouse, tingkatkan ventilasi, gunakan fungisida bila perlu.",
+    },
+    "Tomato___Septoria_leaf_spot": {
+        "nama": "Bercak Septoria (Septoria Leaf Spot)", "tingkat": "sedang",
+        "penyebab": "Jamur Septoria lycopersici.",
+        "gejala": "Bercak bulat kecil dengan pusat abu-abu dan tepi gelap, menyebar dari daun bawah ke atas.",
+        "saran": "Mulsa tanah, hindari daun basah berlama-lama, buang daun terinfeksi, rotasi tanaman.",
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+        "nama": "Tungau Laba-laba (Two-Spotted Spider Mite)", "tingkat": "sedang",
+        "penyebab": "Hama tungau Tetranychus urticae.",
+        "gejala": "Bintik kuning kecil (stippling), jaring halus di bawah daun, daun mengering saat parah.",
+        "saran": "Semprot air bertekanan pada bawah daun, gunakan akarisida/minyak neem, jaga kelembapan udara.",
+    },
+    "Tomato___Target_Spot": {
+        "nama": "Bercak Target (Target Spot)", "tingkat": "sedang",
+        "penyebab": "Jamur Corynespora cassiicola.",
+        "gejala": "Bercak coklat dengan cincin konsentris mirip early blight, dapat menyebar ke batang dan buah.",
+        "saran": "Rotasi tanaman, perbaiki sirkulasi udara, aplikasikan fungisida preventif.",
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+        "nama": "Virus Keriting Daun Kuning (TYLCV)", "tingkat": "berat",
+        "penyebab": "Virus yang ditularkan oleh kutu kebul (whitefly).",
+        "gejala": "Daun menguning, menggulung ke atas, tanaman kerdil dan pertumbuhan terhambat.",
+        "saran": "Kendalikan populasi kutu kebul, cabut & musnahkan tanaman terinfeksi, gunakan varietas tahan virus.",
+    },
+    "Tomato___Tomato_mosaic_virus": {
+        "nama": "Virus Mosaik Tomat (ToMV)", "tingkat": "berat",
+        "penyebab": "Tobamovirus, menular lewat kontak/alat pertanian.",
+        "gejala": "Pola mosaik hijau muda-tua pada daun, daun keriting dan pertumbuhan terhambat.",
+        "saran": "Sterilkan alat pertanian, cuci tangan sebelum menangani tanaman, musnahkan tanaman terinfeksi.",
+    },
+    "Tomato___healthy": {
+        "nama": "Sehat", "tingkat": "sehat",
+        "penyebab": "—",
+        "gejala": "Tidak ditemukan tanda-tanda penyakit pada daun.",
+        "saran": "Lanjutkan perawatan rutin: penyiraman cukup, pemupukan seimbang, pantau berkala.",
+    },
 }
 
 VERSION_LOG = [
-    {"versi": "v1.0", "tanggal": "-", "perubahan": "Rilis awal: unggah gambar + prediksi Custom CNN, tampilan dasar Streamlit."},
-    {"versi": "v2.0", "tanggal": "-", "perubahan": "UI baru dengan hero header, kartu hasil ramah-pengguna, confidence bar, dan halaman Tentang Model terpisah."},
-    {"versi": "v3.0", "tanggal": "-", "perubahan": "Hapus opsi kamera (fokus upload), tambah penjelasan alasan prediksi berbasis analisis warna dominan gambar, dukungan dark mode."},
-    {"versi": "v4.0 (final)", "tanggal": "-", "perubahan": "Desain ulang total mengikuti pola UI/UX AppleOrange Dx: tema terang/gelap eksplisit, indikator langkah 1-2, sidebar navigasi Diagnosis/Tentang Aplikasi, kartu hasil dan rincian keyakinan per kelas."},
+    {"versi": "v1.0", "tanggal": "-", "perubahan": "Rilis awal: upload gambar, tampilkan kelas prediksi & confidence dalam bentuk teks."},
+    {"versi": "v2.0", "tanggal": "-", "perubahan": "Tambah kartu info penyakit (penyebab, gejala, saran penanganan) dan bar chart confidence per kelas."},
+    {"versi": "v3.0", "tanggal": "-", "perubahan": "Alur single-page 3 langkah dengan konfirmasi foto sebelum diagnosa, toggle mode terang/gelap eksplisit, halaman Tentang Aplikasi terpisah, dan daftar penyakit yang bisa di-scroll."},
+    {"versi": "v4.0 (final)", "tanggal": "-", "perubahan": "Hapus seluruh ikon emotikon (diganti simbol formal), ganti label navigasi Diagnosis menjadi Recognition dengan sorotan warna lebih gelap saat aktif, bahasa dibuat lebih formal, tipografi diperbesar dan ditebalkan, serta teks konfirmasi foto disederhanakan."},
 ]
 
 # ----------------------------------------------------------------------------
@@ -60,16 +112,16 @@ VERSION_LOG = [
 # ----------------------------------------------------------------------------
 THEMES = {
     "light": {
-        "bg": "#FBF7F0", "card": "#FFFFFF", "text": "#2A211C", "muted": "#7A6A5E",
-        "border": "#EFE2D3", "primary": "#B3451D", "primary_text": "#FBF7F0",
-        "input_bg": "#FFFFFF", "track": "#F1E6D8",
-        "apple": "#DC2626", "orange": "#EA580C",
+        "bg": "#F2F5EC", "card": "#FFFFFF", "text": "#22301C", "muted": "#55654C",
+        "border": "#DDE5CE", "primary": "#2F4B32", "primary_dark": "#1B2E1D", "primary_text": "#F2F5EC",
+        "input_bg": "#FFFFFF", "track": "#E5EADA",
+        "sehat": "#4F7A3D", "ringan": "#8AA24C", "sedang": "#C97A1F", "berat": "#B33A3A",
     },
     "dark": {
-        "bg": "#1C1613", "card": "#28201B", "text": "#F3E9DF", "muted": "#C4B2A2",
-        "border": "#40332A", "primary": "#E08A4E", "primary_text": "#1C1613",
-        "input_bg": "#231C18", "track": "#3A2E26",
-        "apple": "#F87171", "orange": "#FB923C",
+        "bg": "#161F13", "card": "#212B1C", "text": "#EAF0E1", "muted": "#AFC0A2",
+        "border": "#39492F", "primary": "#7BB563", "primary_dark": "#5C9448", "primary_text": "#12190E",
+        "input_bg": "#1B2417", "track": "#33422A",
+        "sehat": "#7BB563", "ringan": "#AFC26A", "sedang": "#E0A64B", "berat": "#E07A6E",
     },
 }
 
@@ -99,9 +151,9 @@ st.markdown(
     }}
 
     .hero {{ text-align: center; padding: 0.6rem 1rem 0.4rem 1rem; }}
-    .hero-title {{ font-size: 1.9rem; font-weight: 700; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
-    .hero-tagline {{ font-size: 0.8rem; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
-    .hero-sub {{ font-size: 0.95rem; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.5; }}
+    .hero-title {{ font-size: 2.3rem; font-weight: 800; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
+    .hero-tagline {{ font-size: 0.88rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
+    .hero-sub {{ font-size: 1.02rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.55; }}
 
     .steps {{ display: flex; justify-content: center; gap: 0.5rem; margin: 1.2rem 0 1.4rem 0; flex-wrap: wrap; }}
     .step {{ display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: {t['muted']} !important;
@@ -111,18 +163,19 @@ st.markdown(
                  display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; }}
 
     .card {{ background: {t['card']}; border: 1px solid {t['border']}; border-radius: 14px;
-             padding: 1.3rem 1.5rem; margin-bottom: 1rem; color: {t['text']} !important; }}
-    .card b, .card p, .card li {{ color: {t['text']} !important; }}
-    .tips-list {{ font-size: 0.88rem; margin: 0.4rem 0 0 0; padding-left: 1.1rem; }}
+             padding: 1.3rem 1.5rem; margin-bottom: 1rem; color: {t['text']} !important; font-size: 1rem; }}
+    .card b {{ color: {t['text']} !important; font-weight: 800; font-size: 1.05rem; }}
+    .card p, .card li {{ color: {t['text']} !important; font-weight: 500; }}
+    .tips-list {{ font-size: 0.95rem; margin: 0.4rem 0 0 0; padding-left: 1.1rem; }}
     .tips-list li {{ margin-bottom: 0.3rem; }}
 
     .result-card {{ border-radius: 14px; padding: 1.5rem 1.6rem; margin: 0.4rem 0 1rem 0; text-align: center; }}
-    .result-label {{ font-size: 0.82rem; letter-spacing: 0.5px; opacity: 0.9; text-transform: uppercase; }}
-    .result-name {{ font-family: 'Fraunces', serif; font-size: 1.7rem; font-weight: 600; margin: 0.3rem 0; }}
-    .result-conf {{ font-size: 1rem; opacity: 0.95; }}
+    .result-label {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; opacity: 0.95; text-transform: uppercase; }}
+    .result-name {{ font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 800; margin: 0.3rem 0; }}
+    .result-conf {{ font-size: 1.05rem; font-weight: 600; opacity: 0.97; }}
 
     .barrow {{ display: flex; align-items: center; margin: 0.35rem 0; gap: 0.6rem; }}
-    .barrow-label {{ width: 100px; font-size: 0.8rem; color: {t['text']} !important; flex-shrink: 0; }}
+    .barrow-label {{ width: 230px; font-size: 0.8rem; color: {t['text']} !important; flex-shrink: 0; }}
     .barrow-track {{ flex: 1; background: {t['track']}; border-radius: 6px; height: 9px; overflow: hidden; }}
     .barrow-fill {{ height: 100%; border-radius: 6px; }}
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
@@ -134,10 +187,13 @@ st.markdown(
 
     [data-testid="stFileUploaderDropzone"] {{
         background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
+        padding: 1rem 1.2rem !important;
     }}
     [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
+    [data-testid="stFileUploaderDropzoneInstructions"] span {{ font-weight: 700 !important; }}
     [data-testid="stFileUploaderDropzone"] button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
+        font-weight: 700 !important; border-radius: 8px !important;
     }}
     .stButton button, .stDownloadButton button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important;
@@ -155,7 +211,7 @@ st.markdown(
 
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
     section[data-testid="stSidebar"] * {{ color: {t['text']} !important; }}
-    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 700; padding: 0.3rem 0 1rem 0; }}
+    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 800; padding: 0.3rem 0 1rem 0; }}
     section[data-testid="stSidebar"] .stButton button {{
         background: transparent !important; color: {t['text']} !important; border: none !important;
         text-align: left !important; justify-content: flex-start !important; font-weight: 500 !important;
@@ -163,8 +219,8 @@ st.markdown(
     }}
     section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: left !important; }}
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
-    section[data-testid="stSidebar"] div[data-testid="baseButton-primary"] button {{ background: {t['primary']} !important; }}
-    section[data-testid="stSidebar"] div[data-testid="baseButton-primary"] button p {{ color: {t['primary_text']} !important; font-weight: 600 !important; }}
+    section[data-testid="stSidebar"] div[data-testid="baseButton-primary"] button {{ background: {t['primary_dark']} !important; }}
+    section[data-testid="stSidebar"] div[data-testid="baseButton-primary"] button p {{ color: {t['primary_text']} !important; font-weight: 700 !important; }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -185,57 +241,7 @@ def predict(image: Image.Image):
     img = image.convert("RGB").resize(IMG_SIZE)
     arr = np.array(img).astype("float32") / 255.0
     batch = np.expand_dims(arr, axis=0)
-    prob_orange = float(model.predict(batch, verbose=0)[0][0])
-    return {"Apple": 1 - prob_orange, "Orange": prob_orange}
-
-
-def analyze_color_profile(image: Image.Image) -> dict:
-    """Analisis warna dominan gambar sebagai indikator visual pendukung prediksi."""
-    small = image.convert("RGB").resize((64, 64))
-    hsv = np.array(small.convert("HSV"), dtype=np.float32)
-    hue = hsv[..., 0] * (360.0 / 255.0)
-    sat = hsv[..., 1] / 255.0
-    val = hsv[..., 2] / 255.0
-
-    mask = (sat > 0.25) & (val > 0.25)
-    if mask.sum() < 20:
-        mask = np.ones_like(sat, dtype=bool)
-
-    mean_hue = float(hue[mask].mean())
-
-    if mean_hue < 15 or mean_hue >= 345:
-        label, desc = "merah", "merah cerah khas apel"
-    elif mean_hue < 45:
-        label, desc = "oranye", "oranye pekat khas jeruk"
-    elif mean_hue < 70:
-        label, desc = "kuning-oranye", "kuning kecokelatan"
-    elif mean_hue < 160:
-        label, desc = "hijau", "hijau, seperti apel varietas hijau"
-    else:
-        label, desc = "campuran", "campuran warna yang kurang khas"
-
-    return {"hue": mean_hue, "label": label, "desc": desc}
-
-
-def build_reasoning_text(label: str, confidence: float, color_info: dict) -> str:
-    matches_apple = color_info["label"] in ("merah", "hijau")
-    matches_orange = color_info["label"] in ("oranye", "kuning-oranye")
-
-    if label == "Apple" and matches_apple:
-        support = "Ini konsisten dengan prediksi model — apel memang biasanya memiliki warna " + color_info["desc"] + "."
-    elif label == "Orange" and matches_orange:
-        support = "Ini konsisten dengan prediksi model — jeruk memang biasanya memiliki warna " + color_info["desc"] + "."
-    else:
-        support = (
-            "Warna saja tidak sepenuhnya menjelaskan prediksi ini — model kemungkinan juga "
-            "mempertimbangkan tekstur, bentuk, dan pola permukaan yang tidak terlihat lewat "
-            "analisis warna sederhana."
-        )
-
-    return (
-        f"Warna dominan pada gambar cenderung **{color_info['label']}** ({color_info['desc']}). "
-        f"Model memprediksi **{label}** dengan keyakinan **{confidence:.0%}**. {support}"
-    )
+    return model.predict(batch, verbose=0)[0]
 
 
 def render_steps(active: int):
@@ -249,17 +255,18 @@ def render_steps(active: int):
 
 
 # ----------------------------------------------------------------------------
-# HALAMAN: DIAGNOSIS (KLASIFIKASI)
+# HALAMAN: DIAGNOSIS
 # ----------------------------------------------------------------------------
 def render_diagnosis():
     st.markdown(
-        """
+        f"""
         <div class="hero">
-            <div style="font-size:2.2rem;">🍎🍊</div>
-            <div class="hero-title">AppleOrange Dx</div>
-            <div class="hero-tagline">Klasifikasi Apple vs Orange</div>
-            <div class="hero-sub">Unggah foto buahmu untuk mengetahui apakah itu apel atau jeruk,
-            lengkap dengan alasan di balik prediksinya.</div>
+            <div style="font-size:2rem; font-weight:800; color:{t['primary']};">❖</div>
+            <div class="hero-title">TomaLeaf Dx</div>
+            <div class="hero-tagline">Smart Diagnosis for Tomato Leaf Diseases</div>
+            <div class="hero-sub">Unggah foto daun tomat Anda untuk mengetahui kondisinya, apakah sehat
+            atau menunjukkan gejala salah satu dari sembilan penyakit umum, lengkap dengan saran
+            penanganan yang sesuai.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -280,10 +287,10 @@ def render_diagnosis():
 
     if "stage" not in st.session_state:
         st.session_state.stage = 1
-    if "probs" not in st.session_state:
-        st.session_state.probs = None
     if "image_bytes" not in st.session_state:
         st.session_state.image_bytes = None
+    if "probs" not in st.session_state:
+        st.session_state.probs = None
 
     render_steps(st.session_state.stage)
 
@@ -296,9 +303,9 @@ def render_diagnosis():
                 <div class="card">
                 <b>Panduan Penggunaan</b>
                 <ul class="tips-list">
-                    <li>Klik kotak di atas, atau tarik & lepas foto buah.</li>
-                    <li>Ambil foto <b>close-up 1 buah</b>, cahaya cukup, latar polos.</li>
-                    <li>Konfirmasi foto, baru sistem mengklasifikasikan dan menjelaskan alasannya.</li>
+                    <li>Klik kotak di atas, atau tarik dan lepas foto daun tomat.</li>
+                    <li>Gunakan foto <b>close-up satu daun</b> dengan pencahayaan cukup dan latar polos.</li>
+                    <li>Konfirmasi foto terlebih dahulu, kemudian sistem akan mendiagnosis dan memberikan saran penanganan.</li>
                 </ul>
                 </div>
                 """,
@@ -316,93 +323,89 @@ def render_diagnosis():
             st.markdown(
                 """
                 <div class="card" style="text-align:center;">
-                Pastikan foto sudah jelas dan fokus ke buahnya, lalu klik mulai klasifikasi.
-                Mau pakai foto lain? Hapus dulu lewat tombol × di atas.
+                <b>Konfirmasi Foto</b>
+                <p style="margin:0.4rem 0 0 0;">Periksa foto sebelum memulai diagnosis.
+                Pastikan daun terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol ×
+                di bagian atas.</p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            if st.button("Mulai Klasifikasi →", type="primary", use_container_width=True):
-                with st.spinner("Sedang menganalisis buah..."):
+            if st.button("Mulai Diagnosis", type="primary", use_container_width=True):
+                with st.spinner("Sedang menganalisis daun..."):
                     probs = predict(image)
-                    color_info = analyze_color_profile(image)
                 st.session_state.image_bytes = uploaded.getvalue()
-                st.session_state.probs = probs
-                st.session_state.color_info = color_info
+                st.session_state.probs = probs.tolist()
                 st.session_state.stage = 2
                 st.rerun()
 
     elif st.session_state.stage == 2:
-        probs = st.session_state.probs
-        top_label = max(probs, key=probs.get)
-        confidence = probs[top_label]
-        info = FRUIT_INFO[top_label]
-        color = t[info["tier"]]
+        probs = np.array(st.session_state.probs)
+        top_idx = int(np.argmax(probs))
+        top_class = CLASSES[top_idx]
+        info = DISEASE_INFO[top_class]
+        color = t[info["tingkat"]]
 
         st.markdown(
             f"""
             <div class="result-card" style="background:{color}; color:#FFFFFF;">
-                <div class="result-label">Hasil Klasifikasi</div>
+                <div class="result-label">Hasil Diagnosa</div>
                 <div class="result-name">{info['nama']}</div>
-                <div class="result-conf">Tingkat keyakinan model: {confidence*100:.1f}%</div>
+                <div class="result-conf">Tingkat keyakinan model: {probs[top_idx]*100:.1f}%</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-
-        if confidence < LOW_CONFIDENCE_THRESHOLD:
-            st.markdown(
-                """
-                <div class="card">
-                Keyakinan model cukup rendah untuk gambar ini. Coba gunakan foto dengan
-                pencahayaan lebih jelas dan latar belakang polos untuk hasil yang lebih akurat.
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
 
         st.markdown(
             f"""
             <div class="card">
-                <p style="margin:0 0 0.4rem 0;"><b>Warna khas:</b> {info['warna_khas']}</p>
-                <p style="margin:0;"><b>Ciri bentuk & tekstur:</b> {info['ciri']}</p>
+                <p style="margin:0 0 0.4rem 0;"><b>Penyebab:</b> {info['penyebab']}</p>
+                <p style="margin:0 0 0.4rem 0;"><b>Gejala:</b> {info['gejala']}</p>
+                <p style="margin:0;"><b>Saran penanganan:</b> {info['saran']}</p>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        with st.expander("🔎 Kenapa model bilang begitu?", expanded=True):
-            reasoning = build_reasoning_text(top_label, confidence, st.session_state.color_info)
-            st.write(reasoning)
-            st.caption(
-                "Catatan: ini adalah indikator visual pendukung berbasis warna dominan gambar, "
-                "bukan pembongkaran langsung isi \"otak\" model. Model CNN sebenarnya belajar "
-                "dari kombinasi warna, tekstur, dan bentuk sekaligus."
-            )
-
         with st.expander("Lihat rincian keyakinan untuk semua kelas"):
-            order = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)
+            order = np.argsort(probs)[::-1]
             bars = []
-            for cls_name, pct_val in order:
-                pct = pct_val * 100
+            for i in order:
+                pct = probs[i] * 100
+                cls_i = CLASSES[i]
                 bars.append(
                     f'<div class="barrow">'
-                    f'<div class="barrow-label">{FRUIT_INFO[cls_name]["nama"].split(" ")[0]}</div>'
-                    f'<div class="barrow-track"><div class="barrow-fill" style="width:{pct:.1f}%; background:{t[FRUIT_INFO[cls_name]["tier"]]};"></div></div>'
+                    f'<div class="barrow-label">{DISEASE_INFO[cls_i]["nama"]}</div>'
+                    f'<div class="barrow-track"><div class="barrow-fill" style="width:{pct:.1f}%; background:{t[DISEASE_INFO[cls_i]["tingkat"]]};"></div></div>'
                     f'<div class="barrow-pct">{pct:.1f}%</div>'
                     f'</div>'
                 )
             bars_html = '<div class="scroll-box">' + "".join(bars) + "</div>"
             st.markdown(bars_html, unsafe_allow_html=True)
 
-        if st.button("↻ Uji Foto Lain", use_container_width=True):
+        if st.button("Unggah Foto Lain", use_container_width=True):
             st.session_state.stage = 1
             st.session_state.image_bytes = None
             st.session_state.probs = None
             st.rerun()
 
-    st.caption("AppleOrange Dx · Model: CNN Custom · Nada Thahira Sosa — 2601")
+    with st.expander("Penyakit yang dapat dikenali"):
+        cards = []
+        for cls in CLASSES:
+            info = DISEASE_INFO[cls]
+            color = t[info["tingkat"]]
+            cards.append(
+                f'<div class="card" style="border-left:4px solid {color}; margin-bottom:0.6rem;">'
+                f'<b>{info["nama"]}</b>'
+                f'<span style="font-size:0.72rem; color:{color} !important; font-weight:600;"> · {info["tingkat"].upper()}</span>'
+                f'</div>'
+            )
+        list_html = '<div class="scroll-box">' + "".join(cards) + "</div>"
+        st.markdown(list_html, unsafe_allow_html=True)
+
+    st.caption("TomaLeaf Dx · Model: CNN Custom · Nada Thahira Sosa — 2601 · MBC Lab Week 2")
 
 
 # ----------------------------------------------------------------------------
@@ -412,32 +415,34 @@ def render_about():
     st.markdown('<div class="hero-title" style="text-align:left; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
 
     st.markdown(
-        f"""
+        """
         <div class="card">
-            <b>Tentang AppleOrange Dx</b>
-            <p style="margin:0.5rem 0 0.4rem 0;">AppleOrange Dx merupakan aplikasi untuk membantu
-            mengidentifikasi apakah sebuah foto buah adalah apel atau jeruk.</p>
-            <p style="margin:0;">Aplikasi ini memberikan alasan prediksi berbasis analisis warna
-            dominan gambar, agar hasil klasifikasi lebih mudah dipahami.</p>
+            <b>Tentang TomaLeaf Dx</b>
+            <p style="margin:0.5rem 0 0.4rem 0;">TomaLeaf Dx merupakan aplikasi untuk membantu mengidentifikasi kondisi
+            dan penyakit pada daun tomat berdasarkan foto yang diunggah pengguna.</p>
+            <p style="margin:0;">Aplikasi ini membantu proses identifikasi awal berdasarkan gambar, dan bukan
+            pengganti pemeriksaan langsung oleh ahli tanaman.</p>
         </div>
 
         <div class="card">
             <b>Model yang Digunakan</b>
-            <p style="margin:0.5rem 0 0.4rem 0; font-weight:600;">Custom CNN (dibangun dari nol)</p>
-            <p style="margin:0;">Model dilatih untuk membedakan Apple dan Orange dari citra 128×128
-            piksel.</p>
+            <p style="margin:0.5rem 0 0.4rem 0; font-weight:600;">CNN Custom</p>
+            <p style="margin:0;">Model CNN Custom (4 blok konvolusi) digunakan untuk mengklasifikasikan gambar daun
+            tomat ke dalam kelas kondisi yang telah ditentukan. Dipilih sebagai model terbaik karena F1-score macro
+            lebih tinggi dibanding MobileNetV2 Transfer Learning (94,09% vs 85,39%) pada evaluasi test set.</p>
+        </div>
+
+        <div class="card">
+            <b>Cakupan Diagnosis</b>
+            <p style="margin:0.5rem 0 0.4rem 0; font-weight:600;">9 penyakit umum dan kondisi sehat</p>
+            <p style="margin:0;">Model mengenali kelas-kelas yang telah ditentukan pada dataset. Daftar lengkapnya
+            dapat dilihat pada halaman Recognition.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Accuracy", f"{MODEL_INFO['accuracy']*100:.2f}%")
-    m2.metric("F1 Score", f"{MODEL_INFO['f1']:.4f}")
-    m3.metric("Total Params", MODEL_INFO["params"])
-    m4.metric("Epochs", MODEL_INFO["epochs"])
-
-    with st.expander("🕓 Riwayat Versi", expanded=False):
+    with st.expander("Riwayat Versi", expanded=False):
         rows = []
         for v in VERSION_LOG:
             rows.append(
@@ -454,7 +459,7 @@ def render_about():
         """
         <div class="card">
             <b>Informasi Aplikasi</b>
-            <p style="margin:0.6rem 0 0 0;">AppleOrange Dx<br>Model: CNN Custom<br>Nada Thahira Sosa — 2601</p>
+            <p style="margin:0.6rem 0 0 0;">TomaLeaf Dx<br>Model: CNN Custom<br>Nada Thahira Sosa — 2601<br>MBC Lab Week 2</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -465,20 +470,20 @@ def render_about():
 # SIDEBAR — NAVIGASI UTAMA
 # ----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown('<div class="sidebar-brand">🍎🍊 AppleOrange Dx</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-brand">❖ TomaLeaf Dx</div>', unsafe_allow_html=True)
 
-    if st.button("🔍 Diagnosis", key="nav_diagnosis", use_container_width=True,
+    if st.button("Recognition", key="nav_diagnosis", use_container_width=True,
                  type="primary" if st.session_state.page == "diagnosis" else "secondary"):
         st.session_state.page = "diagnosis"
         st.rerun()
 
-    if st.button("ℹ️ Tentang Aplikasi", key="nav_about", use_container_width=True,
+    if st.button("Tentang Aplikasi", key="nav_about", use_container_width=True,
                  type="primary" if st.session_state.page == "about" else "secondary"):
         st.session_state.page = "about"
         st.rerun()
 
     st.markdown("---")
-    st.toggle("🌙 Mode Gelap", key="dark_mode", help="Mode gelap / terang")
+    st.toggle("Mode Gelap", key="dark_mode", help="Mode gelap / terang")
 
 # ----------------------------------------------------------------------------
 # ROUTER
