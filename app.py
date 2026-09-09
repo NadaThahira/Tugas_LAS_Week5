@@ -124,9 +124,22 @@ st.markdown(
     /* Komponen native Streamlit: uploader, tombol, expander */
     [data-testid="stFileUploaderDropzone"] {{
         background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
-        padding: 1rem 1.2rem !important;
+        padding: 1rem 4.2rem 1rem 1.2rem !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+        position: relative !important;
+    }}
+    /* Kotak upload di HP (mode ringkas) punya banyak ruang kosong di kanan — isi dengan
+       ikon buah dekoratif supaya tidak terlalu polos, tanpa mengganggu tombol/teks aslinya. */
+    [data-testid="stFileUploaderDropzone"]::after {{
+        content: "🍎🍊";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 2.1rem;
+        opacity: 0.3;
+        pointer-events: none;
     }}
     [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
     [data-testid="stFileUploaderDropzoneInstructions"] span {{ font-weight: 700 !important; }}
@@ -548,4 +561,3 @@ if st.session_state.page == "diagnosis":
     render_diagnosis()
 else:
     render_about()
-    
