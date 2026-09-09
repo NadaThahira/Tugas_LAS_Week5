@@ -132,10 +132,18 @@ st.markdown(
     /* Kotak upload di HP (mode ringkas): tambahkan "Drag and drop here" sebagai baris besar
        tepat di atas keterangan ukuran file yang sudah ada (bukan menggantikannya) — jadi
        barisnya: (1) Drag and drop here — lebih besar/tebal, (2) teks batas ukuran file yang
-       sudah ada sebelumnya — dibuat lebih kecil, persis seperti sebelumnya tapi diperkecil. */
+       sudah ada sebelumnya — dibuat lebih kecil, persis seperti sebelumnya tapi diperkecil.
+       Container aslinya berupa flex row (makanya sebelumnya nempel jadi satu baris) — paksa
+       jadi flex column supaya dua baris ini benar-benar bertumpuk. */
+    [data-testid="stFileUploaderDropzoneInstructions"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }}
     [data-testid="stFileUploaderDropzoneInstructions"]::before {{
         content: "Drag and drop here";
         display: block;
+        width: 100%;
         font-size: 0.95rem;
         font-weight: 700;
         color: {t['text']} !important;
