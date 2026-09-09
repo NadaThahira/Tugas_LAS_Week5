@@ -164,14 +164,14 @@ st.markdown(
         width: 100% !important;
     }}
 
-    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri, lebar penuh */
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kanan, lebar penuh */
     section[data-testid="stSidebar"] .stButton button {{
         background: transparent !important; color: {t['text']} !important; border: none !important;
-        text-align: left !important; justify-content: flex-start !important; font-weight: 500 !important;
+        text-align: right !important; justify-content: flex-end !important; font-weight: 500 !important;
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
         width: 100% !important; box-sizing: border-box !important; margin: 0 !important;
     }}
-    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: left !important; }}
+    section[data-testid="stSidebar"] .stButton button p {{ color: {t['text']} !important; font-weight: 500 !important; text-align: right !important; }}
 
     /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
