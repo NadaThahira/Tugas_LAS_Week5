@@ -137,6 +137,14 @@ st.markdown(
         background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
         font-weight: 700 !important; border-radius: 8px !important;
     }}
+    /* Ikon & label DI DALAM tombol "Upload"/"Browse files" sempat ikut ketiban rule "*" di atas
+       (jadi teks gelap di atas tombol oranye = kontras rendah). Paksa semua elemen anak tombol
+       ini pakai warna terang supaya kontras terhadap latar oranye-nya. */
+    [data-testid="stFileUploaderDropzone"] button *,
+    [data-testid="stFileUploaderDropzone"] button svg {{
+        color: {t['primary_text']} !important;
+        fill: {t['primary_text']} !important;
+    }}
     .stButton button, .stDownloadButton button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important;
         border: none !important; border-radius: 10px !important;
