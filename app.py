@@ -357,9 +357,12 @@ st.markdown(
         display: none !important;
     }}
 
-    /* Sembunyikan elemen/svg/section bawaan Streamlit di dalam dropzone */
-    [data-testid="stFileUploaderDropzone"] svg,
-    [data-testid="stFileUploaderDropzone"] section {{
+    /* Sembunyikan HANYA ikon/section dekoratif bawaan Streamlit (bukan yang ada di dalam
+       tombol, seperti tombol hapus file) — kalau "svg" disasar tanpa syarat, ikon tombol
+       hapus (×) ikut hilang karena berada dalam wrapper yang sama. */
+    [data-testid="stFileUploaderDropzone"] > svg,
+    [data-testid="stFileUploaderDropzoneInstructions"] svg,
+    [data-testid="stFileUploaderDropzone"] > section {{
         display: none !important;
     }}
 
@@ -381,7 +384,10 @@ st.markdown(
         background: transparent !important;
     }}
 
-    /* Chip file yang sudah diunggah & semua elemen di dalamnya */
+    /* Chip file yang sudah diunggah & semua elemen di dalamnya. Sengaja HANYA pakai
+       background-color (bukan shorthand "background"), supaya thumbnail gambar kecil
+       bawaan Streamlit (kalau dirender sebagai background-image) tidak ikut ketiban
+       jadi kotak kosong. */
     [data-testid="stFileUploaderFileData"],
     [data-testid="stFileUploaderFile"],
     [data-testid="stFileUploader"] ul,
@@ -389,7 +395,6 @@ st.markdown(
     [data-testid="stFileUploader"] [data-testid*="file"],
     [data-testid="stFileUploader"] [data-testid*="File"] {{
         background-color: {t['card']} !important;
-        background: {t['card']} !important;
         border-radius: 10px !important;
         border: 1px solid {t['border']} !important;
         color: {t['text']} !important;
@@ -462,6 +467,10 @@ st.markdown(
         display: block !important;
         border-radius: 12px !important;
         border: 1px solid {t['border']} !important;
+        max-height: 190px !important;
+        width: auto !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
     }}
     [data-testid="stImageCaption"] {{
         text-align: center !important;
@@ -727,6 +736,10 @@ def render_diagnosis():
             )
         else:
             image = Image.open(uploaded)
+
+            col_l, col_mid, col_r = st.columns([1, 1.4, 1])
+            with col_mid:
+                st.image(image, use_container_width=True)
 
             st.markdown(
                 f"""
