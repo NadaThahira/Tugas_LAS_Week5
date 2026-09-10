@@ -249,6 +249,37 @@ st.markdown(
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
     }}
+    /* Chip file yang sudah diunggah (nama file + ukuran) di dalam dropzone */
+    [data-testid="stFileUploaderFile"] {{
+        background: {t['input_bg']} !important;
+        border: 1px solid {t['border']} !important;
+        border-radius: 10px !important;
+        padding: 0.35rem 0.6rem !important;
+    }}
+    [data-testid="stFileUploaderFile"] * {{ color: {t['text']} !important; }}
+    [data-testid="stFileUploaderFileName"] {{ color: {t['text']} !important; font-weight: 600 !important; }}
+    [data-testid="stFileUploaderFileData"],
+    [data-testid="stFileUploaderFileData"] * {{ color: {t['muted']} !important; }}
+    /* Tombol hapus (x) pada chip — beri latar kontras supaya ikon x-nya terlihat jelas,
+       bukan lingkaran putih polos tanpa isi seperti sebelumnya */
+    [data-testid="stFileUploaderDeleteBtn"] {{
+        background: {t['track']} !important;
+        border: none !important;
+        border-radius: 50% !important;
+        opacity: 1 !important;
+    }}
+    [data-testid="stFileUploaderDeleteBtn"]:hover {{ background: {t['border']} !important; }}
+    [data-testid="stFileUploaderDeleteBtn"] svg,
+    [data-testid="stFileUploaderDeleteBtn"] * {{
+        fill: {t['text']} !important;
+        color: {t['text']} !important;
+        opacity: 1 !important;
+    }}
+    /* Sembunyikan tombol "+" (browse/ganti file) begitu satu file sudah dipilih — tidak
+       diperlukan lagi dan sebelumnya hanya tampil sebagai ikon terpotong tanpa label */
+    [data-testid="stFileUploaderDropzone"]:has([data-testid="stFileUploaderFile"]) button {{
+        display: none !important;
+    }}
     .stButton button, .stDownloadButton button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important;
         border: none !important; border-radius: 10px !important;
@@ -282,7 +313,7 @@ st.markdown(
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarCollapseButton"],
     [data-testid*="Sidebar"][data-testid*="ollaps"],
     [aria-label*="sidebar" i],
     [aria-label*="Sidebar" i] {{
@@ -294,12 +325,14 @@ st.markdown(
         border: 1px solid {t['border']} !important;
         border-radius: 8px !important;
     }}
-    [data-testid="collapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg,
-    button[data-testid="stSidebarCollapseButton"] svg,
-    [data-testid*="Sidebar"][data-testid*="ollaps"] svg,
-    [aria-label*="sidebar" i] svg,
-    [aria-label*="Sidebar" i] svg {{
+    /* Semua isi tombol (ikon svg maupun teks) dipaksa pakai warna utama supaya selalu
+       kontras terhadap latar kartu di atas, apa pun elemen aslinya */
+    [data-testid="collapsedControl"] *,
+    [data-testid="stSidebarCollapsedControl"] *,
+    [data-testid="stSidebarCollapseButton"] *,
+    [data-testid*="Sidebar"][data-testid*="ollaps"] *,
+    [aria-label*="sidebar" i] *,
+    [aria-label*="Sidebar" i] * {{
         fill: {t['primary']} !important;
         color: {t['primary']} !important;
         opacity: 1 !important;
