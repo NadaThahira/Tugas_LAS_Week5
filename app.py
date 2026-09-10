@@ -199,6 +199,27 @@ st.markdown(
 
     /* Sidebar navigasi */
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
+    /* Tombol untuk membuka kembali sidebar saat sedang ditutup — pastikan selalu terlihat
+       (kadang ikonnya jadi transparan/senada background sehingga sulit ditemukan). Menyasar
+       beberapa testid sekaligus karena namanya berbeda antar versi Streamlit. */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[data-testid="stSidebarCollapseButton"] {{
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+        background: {t['card']} !important;
+        border: 1px solid {t['border']} !important;
+        border-radius: 8px !important;
+    }}
+    [data-testid="collapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] svg,
+    button[data-testid="stSidebarCollapseButton"] svg {{
+        fill: {t['primary']} !important;
+        color: {t['primary']} !important;
+        opacity: 1 !important;
+    }}
     section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] label,
     section[data-testid="stSidebar"] div.sidebar-brand {{ color: {t['text']} !important; }}
     .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: center; }}
