@@ -224,33 +224,46 @@ st.markdown(
     .barrow-fill {{ height: 100%; border-radius: 6px; }}
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
 
-    /* Komponen File Uploader Modern, Minimalis & Clean */
+    /* Komponen File Uploader: Single Clickable Drag-and-Drop Box */
     [data-testid="stFileUploader"] {{
         width: 100% !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: 1.2rem !important;
     }}
     [data-testid="stFileUploaderDropzone"] {{
+        position: relative !important;
         background: #FFFFFF !important;
         border: 1.5px dashed #A7D7C5 !important;
         border-radius: 11px !important;
-        padding: 14px 18px !important;
-        min-height: 76px !important;
+        padding: 16px 20px !important;
+        min-height: 75px !important;
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        justify-content: space-between !important;
-        gap: 1rem !important;
+        justify-content: flex-start !important;
+        gap: 16px !important;
         cursor: pointer !important;
         box-shadow: none !important;
-        transition: all 180ms ease-in-out !important;
+        transition: background 180ms ease, border-color 180ms ease !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
     }}
     [data-testid="stFileUploaderDropzone"]:hover {{
         background: #F4FBF7 !important;
         border-color: #52B788 !important;
         border-style: dashed !important;
     }}
-    /* Ikon cloud upload & teks di sisi kiri */
+    /* Ikon cloud upload di sisi kiri */
+    [data-testid="stFileUploaderDropzone"] svg {{
+        fill: #3A7D63 !important;
+        color: #3A7D63 !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        flex-shrink: 0 !important;
+        margin: 0 !important;
+        order: 1 !important;
+    }}
+    /* Teks instruksi & limit di samping icon, rata kiri vertikal bertingkat */
     [data-testid="stFileUploaderDropzoneInstructions"] {{
         display: flex !important;
         flex-direction: column !important;
@@ -258,11 +271,13 @@ st.markdown(
         justify-content: center !important;
         text-align: left !important;
         flex: 1 1 auto !important;
-        order: 1 !important;
+        order: 2 !important;
         cursor: pointer !important;
         gap: 2px !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
-    /* Judul Utama: Dark gray, font medium/semibold */
+    /* Judul Utama: Drag and drop file here */
     [data-testid="stFileUploaderDropzoneInstructions"] > div:first-child,
     [data-testid="stFileUploaderDropzoneInstructions"] p,
     [data-testid="stFileUploaderDropzoneInstructions"] span:first-child {{
@@ -270,47 +285,34 @@ st.markdown(
         font-weight: 600 !important;
         color: #2D3748 !important;
         margin: 0 !important;
-        letter-spacing: -0.2px !important;
+        line-height: 1.3 !important;
+        letter-spacing: -0.1px !important;
     }}
-    /* Teks informasi: ukuran kecil, abu-abu */
+    /* Teks info batas file: Limit 200MB per file • JPG, JPEG, PNG */
     [data-testid="stFileUploaderDropzoneInstructions"] small,
     [data-testid="stFileUploaderDropzoneInstructions"] span:last-child {{
         font-size: 0.8rem !important;
         font-weight: 400 !important;
         color: #718096 !important;
         margin: 0 !important;
+        line-height: 1.3 !important;
     }}
-    /* Ikon upload awan / cloud */
-    [data-testid="stFileUploaderDropzone"] svg {{
-        fill: #3A7D63 !important;
-        color: #3A7D63 !important;
-    }}
-    /* Tombol Browse files di sisi kanan */
+    /* Sembunyikan tombol upload terpisah dan jadikan seluruh area dropzone klik-able */
     [data-testid="stFileUploaderDropzone"] button {{
-        background: #2D6A4F !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        font-weight: 600 !important;
-        font-size: 0.88rem !important;
-        border-radius: 8px !important;
-        padding: 0.5rem 1.1rem !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        height: auto !important;
-        min-width: 110px !important;
-        order: 2 !important;
-        margin-left: auto !important;
-        flex-shrink: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        opacity: 0 !important;
         cursor: pointer !important;
-        transition: background 180ms ease !important;
-    }}
-    [data-testid="stFileUploaderDropzone"] button:hover {{
-        background: #1B4332 !important;
-    }}
-    [data-testid="stFileUploaderDropzone"] button * {{
-        color: #FFFFFF !important;
-        fill: #FFFFFF !important;
+        z-index: 10 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
     }}
 
     /* Chip file yang sudah diunggah & semua elemen di dalamnya */
