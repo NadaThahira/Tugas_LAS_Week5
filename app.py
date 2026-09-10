@@ -28,14 +28,37 @@ LOW_CONFIDENCE_THRESHOLD = 0.65
 FRUIT_INFO = {
     "Apple": {
         "nama": "Apple (Apel)",
-        "warna_khas": "Merah cerah atau hijau, tergantung varietasnya",
-        "ciri": "Bentuk bulat dengan sedikit lekukan di bagian atas (tempat tangkai), kulit cenderung mengilap dan halus.",
+        "warna_khas": (
+            "Merah cerah, merah kehijauan, hijau, atau kuning, tergantung varietasnya "
+            "(misalnya Fuji dan Red Delicious cenderung merah pekat, sementara Granny Smith "
+            "hijau terang dan Golden Delicious kuning keemasan). Warna biasanya tidak rata "
+            "sempurna — sering ada semburat/gradasi warna serta bintik-bintik kecil (lentisel) "
+            "di permukaannya."
+        ),
+        "ciri": (
+            "Bentuk bulat hingga agak lonjong, dengan lekukan (cekungan) yang cukup jelas di "
+            "bagian atas tempat tangkai menempel dan cekungan serupa (kadang lebih dangkal) di "
+            "bagian bawah. Kulitnya cenderung mulus, mengilap, dan tipis, tanpa pori-pori besar "
+            "yang mencolok. Saat dipegang terasa cukup padat dan berat untuk ukurannya, dan "
+            "permukaannya bisa terasa sedikit berlilin akibat lapisan alami buah."
+        ),
         "tier": "apple",
     },
     "Orange": {
         "nama": "Orange (Jeruk)",
-        "warna_khas": "Oranye pekat merata di seluruh permukaan",
-        "ciri": "Bentuk bulat dengan tekstur kulit berpori (dimpled/bertekstur), warna oranye konsisten di semua sisi.",
+        "warna_khas": (
+            "Oranye pekat dan relatif merata di seluruh permukaan, kadang dengan semburat "
+            "kuning di bagian tertentu tergantung tingkat kematangan. Warnanya cenderung lebih "
+            "seragam dibanding apel, tanpa gradasi warna yang mencolok antar sisi buah."
+        ),
+        "ciri": (
+            "Bentuk bulat hampir sempurna dengan bagian atas-bawah yang lebih rata/tidak terlalu "
+            "berlekuk dibanding apel. Ciri paling khasnya ada di teksturnya: kulit berpori "
+            "(dimpled), sedikit kasar saat diraba, dan mengandung banyak kelenjar minyak kecil "
+            "yang membuat permukaannya terlihat bertekstur, bukan mengilap licin seperti apel. "
+            "Kulitnya juga relatif lebih tebal dan sedikit lebih empuk saat ditekan dibanding "
+            "kulit apel yang keras."
+        ),
         "tier": "orange",
     },
 }
@@ -197,7 +220,18 @@ st.markdown(
         background: {t['primary']} !important; color: {t['primary_text']} !important;
         border: none !important; border-radius: 10px !important;
     }}
-    [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; }}
+    [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; overflow: hidden !important; }}
+    /* Header expander (summary) sempat kebawa warna gelap bawaan Streamlit saat dibuka/hover/focus
+       karena kita cuma set background di container luar, bukan di summary-nya sendiri. Paksa
+       semua state (tertutup, hover, fokus, terbuka) pakai warna kartu tema kita. */
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary:hover,
+    [data-testid="stExpander"] summary:focus,
+    [data-testid="stExpander"] details[open] summary,
+    [data-testid="stExpander"] details summary {{
+        background: {t['card']} !important;
+    }}
+    [data-testid="stExpanderDetails"] {{ background: {t['card']} !important; }}
     [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{ color: {t['text']} !important; }}
     [data-testid="stExpander"] summary, [data-testid="stExpander"] summary p, [data-testid="stExpander"] summary span,
     [data-testid="stExpander"] summary div {{ font-weight: 700 !important; font-size: 1.05rem !important; }}
@@ -490,29 +524,43 @@ def render_diagnosis():
             unsafe_allow_html=True,
         )
 
-        with st.expander("Kenapa model bilang begitu?", expanded=True):
-            reasoning = build_reasoning_text(top_label, confidence, st.session_state.color_info)
-            st.write(reasoning)
-            st.caption(
-                "Catatan: ini adalah indikator visual pendukung berbasis warna dominan gambar, "
-                "bukan pembongkaran langsung isi \"otak\" model. Model CNN sebenarnya belajar "
-                "dari kombinasi warna, tekstur, dan bentuk sekaligus."
-            )
+        reasoning = build_reasoning_text(top_label, confidence, st.session_state.color_info)
+        st.markdown(
+            f"""
+            <div class="card">
+                <b>Dasar Analisis Prediksi</b>
+                <p style="margin:0.6rem 0 0.5rem 0;">{reasoning}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.caption(
+            "Catatan: ini adalah indikator visual pendukung berbasis warna dominan gambar, "
+            "bukan pembongkaran langsung isi \"otak\" model. Model CNN sebenarnya belajar "
+            "dari kombinasi warna, tekstur, dan bentuk sekaligus."
+        )
 
-        with st.expander("Lihat rincian keyakinan untuk semua kelas"):
-            order = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)
-            bars = []
-            for cls_name, pct_val in order:
-                pct = pct_val * 100
-                bars.append(
-                    f'<div class="barrow">'
-                    f'<div class="barrow-label">{FRUIT_INFO[cls_name]["nama"].split(" ")[0]}</div>'
-                    f'<div class="barrow-track"><div class="barrow-fill" style="width:{pct:.1f}%; background:{t[FRUIT_INFO[cls_name]["tier"]]};"></div></div>'
-                    f'<div class="barrow-pct">{pct:.1f}%</div>'
-                    f'</div>'
-                )
-            bars_html = '<div class="scroll-box">' + "".join(bars) + "</div>"
-            st.markdown(bars_html, unsafe_allow_html=True)
+        order = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)
+        bars = []
+        for cls_name, pct_val in order:
+            pct = pct_val * 100
+            bars.append(
+                f'<div class="barrow">'
+                f'<div class="barrow-label">{FRUIT_INFO[cls_name]["nama"].split(" ")[0]}</div>'
+                f'<div class="barrow-track"><div class="barrow-fill" style="width:{pct:.1f}%; background:{t[FRUIT_INFO[cls_name]["tier"]]};"></div></div>'
+                f'<div class="barrow-pct">{pct:.1f}%</div>'
+                f'</div>'
+            )
+        bars_html = "".join(bars)
+        st.markdown(
+            f"""
+            <div class="card">
+                <b>Distribusi Tingkat Keyakinan per Kelas</b>
+                <div style="margin-top:0.7rem;">{bars_html}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         if st.button("↻ Unggah Foto Lain", use_container_width=True):
             st.session_state.stage = 1
