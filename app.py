@@ -225,66 +225,35 @@ st.markdown(
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
 
     /* Komponen native Streamlit: uploader, tombol, expander */
-    [data-testid="stFileUploaderDropzone"] {{
-        background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
-        padding: 1rem 1.2rem !important;
+    [data-testid="stFileUploader"] {{
         max-width: 100% !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        align-items: center !important;
-        gap: 0.9rem !important;
-        overflow: hidden !important;
+    }}
+    [data-testid="stFileUploaderDropzone"] {{
+        background: {t['card']} !important;
+        border: 2px dashed {t['border']} !important;
+        border-radius: 12px !important;
+        padding: 1.4rem !important;
+    }}
+    [data-testid="stFileUploaderDropzone"]:hover {{
+        border-color: {t['primary']} !important;
     }}
     [data-testid="stFileUploaderDropzone"] button {{
-        background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
-        font-weight: 700 !important; border-radius: 8px !important;
-        order: 1 !important;
-        flex-shrink: 0 !important;
+        background: {t['primary']} !important;
+        color: {t['primary_text']} !important;
+        border: none !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 0.45rem 1rem !important;
     }}
-    [data-testid="stFileUploaderDropzoneInstructions"] {{
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        order: 2 !important;
-        width: auto !important;
-        min-width: 0 !important;
-        flex: 1 1 160px !important;
-        max-width: 100% !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"]::before,
-    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
-        max-width: 100% !important;
-        overflow-wrap: break-word !important;
-        white-space: normal !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
-        content: "Pilih atau seret gambar untuk diunggah";
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: {t['text']} !important;
-        margin-bottom: 0.2rem;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"] span {{
-        font-size: 0 !important;
-        line-height: 0 !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
-        content: "JPG, PNG • Max 200MB";
-        display: block;
-        font-weight: 500;
-        font-size: 0.78rem;
-        color: {t['muted']} !important;
-    }}
-    [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
-    [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
-    [data-testid="stFileUploaderDropzone"] button *,
-    [data-testid="stFileUploaderDropzone"] button svg {{
+    [data-testid="stFileUploaderDropzone"] button * {{
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"] {{
+        color: {t['text']} !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"] * {{
+        color: {t['muted']} !important;
     }}
 
     /* Chip file yang sudah diunggah & semua elemen di dalamnya */
