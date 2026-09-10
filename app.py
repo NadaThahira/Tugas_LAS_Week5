@@ -467,7 +467,7 @@ st.markdown(
         display: block !important;
         border-radius: 12px !important;
         border: 1px solid {t['border']} !important;
-        max-height: 190px !important;
+        max-height: 280px !important;
         width: auto !important;
         max-width: 100% !important;
         object-fit: contain !important;
