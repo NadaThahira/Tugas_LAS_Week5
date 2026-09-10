@@ -167,6 +167,9 @@ st.markdown(
         padding: 0.4rem 0.6rem !important;
     }
     [data-testid="stFileUploaderFileData"] * {
+        color: #1E293B !important;
+    }
+
     /* Outer feature card styling */
     .feature-box {
         background: white;
