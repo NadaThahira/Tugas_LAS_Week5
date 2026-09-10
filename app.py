@@ -233,41 +233,53 @@ st.markdown(
         background: {t['card']} !important;
         border: 2px dashed {t['border']} !important;
         border-radius: 14px !important;
-        padding: 1.8rem 1.5rem !important;
-        min-height: 120px !important;
+        padding: 1rem 1.4rem !important;
         display: flex !important;
-        flex-direction: column !important;
+        flex-direction: row !important;
         align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
-        gap: 0.6rem !important;
+        justify-content: space-between !important;
+        text-align: left !important;
+        gap: 1.2rem !important;
+        box-sizing: border-box !important;
     }}
     [data-testid="stFileUploaderDropzone"]:hover {{
         border-color: {t['primary']} !important;
     }}
+    /* Ikon dan teks di sisi kiri */
+    [data-testid="stFileUploaderDropzoneInstructions"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+        flex: 1 1 auto !important;
+        order: 1 !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"] * {{
+        text-align: left !important;
+        color: {t['text']} !important;
+    }}
+    /* Tombol Browse files di sisi kanan */
     [data-testid="stFileUploaderDropzone"] button {{
         background: {t['primary']} !important;
         color: {t['primary_text']} !important;
         border: none !important;
         font-weight: 600 !important;
+        font-size: 0.92rem !important;
         border-radius: 8px !important;
-        padding: 0.45rem 1.2rem !important;
+        padding: 0.55rem 1.3rem !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         height: auto !important;
-        min-width: 120px !important;
+        width: auto !important;
+        min-width: 130px !important;
+        order: 2 !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
     }}
     [data-testid="stFileUploaderDropzone"] button * {{
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"] {{
-        color: {t['text']} !important;
-        text-align: center !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"] * {{
-        color: {t['muted']} !important;
     }}
 
     /* Chip file yang sudah diunggah & semua elemen di dalamnya */
