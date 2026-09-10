@@ -142,16 +142,23 @@ st.markdown(
     }}
     .result-conf-fill {{ height: 100%; border-radius: 6px; background: #FFFFFF; }}
 
-    /* Grid 2x2 "Mengapa model memilih ..." di halaman hasil */
-    .analysis-grid {{
-        display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 2rem;
-        margin: 0; padding: 0 0.2rem;
+    /* Kartu "Karakteristik Visual" di halaman hasil: judul di luar kartu, lalu dua kartu
+       (Warna, Bentuk) sejajar, dan satu kartu penuh (Tekstur Permukaan) di bawahnya. */
+    .visual-title {{ font-size: 1rem; margin: 1.4rem 0 0.8rem 0.2rem; }}
+    .visual-row {{ display: flex; gap: 1rem; margin-bottom: 1rem; }}
+    .visual-row .visual-card {{ flex: 1 1 0; min-width: 0; margin-bottom: 0; }}
+    .visual-card-full {{ margin-bottom: 1rem; }}
+    .visual-header {{
+        font-weight: 700; font-size: 0.92rem; letter-spacing: 0.3px;
+        color: {t['primary']} !important; margin-bottom: 0.5rem;
     }}
-    .analysis-item .analysis-label {{
-        font-weight: 700; font-size: 0.8rem; letter-spacing: 0.6px;
-        color: {t['primary']} !important; margin-bottom: 0.3rem;
+    .visual-tags {{ font-weight: 700; font-size: 0.9rem; margin-bottom: 0.6rem; color: {t['text']} !important; }}
+    .visual-card p, .visual-card-full p {{
+        margin: 0; font-size: 0.88rem; line-height: 1.55; color: {t['text']} !important;
     }}
-    .analysis-item p {{ margin: 0; font-size: 0.92rem; line-height: 1.5; color: {t['text']} !important; }}
+    @media (max-width: 480px) {{
+        .visual-row {{ flex-direction: column; }}
+    }}
     /* Grid 2 kolom untuk kartu "Konfigurasi Model" di halaman Tentang */
     .config-grid {{
         display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem;
@@ -167,9 +174,6 @@ st.markdown(
     .note-block {{ padding: 0.2rem 0.3rem 1rem 0.3rem; }}
     .note-block p {{ color: {t['muted']} !important; font-size: 0.85rem; line-height: 1.55; }}
     .note-block b {{ color: {t['muted']} !important; font-size: 0.85rem; letter-spacing: 0.4px; }}
-    @media (max-width: 420px) {{
-        .analysis-grid {{ grid-template-columns: 1fr; }}
-    }}
 
     .barrow {{ display: flex; align-items: center; margin: 0.35rem 0; gap: 0.6rem; }}
     .barrow-label {{ width: 100px; font-size: 0.8rem; color: {t['text']} !important; flex-shrink: 0; }}
@@ -408,24 +412,52 @@ def analyze_color_profile(image: Image.Image) -> dict:
     return {"hue": mean_hue, "label": label, "desc": desc}
 
 
-GRID_INFO = {
+VISUAL_INFO = {
     "Apple": {
-        "bentuk": "Bulat dengan lekukan jelas pada bagian pangkal tangkai.",
-        "tekstur": "Permukaan halus dan mengilap tanpa pori besar.",
-        "pola": "Ciri visual keseluruhan sesuai karakteristik umum apel.",
+        "bentuk_tags": "Bulat • Agak lonjong",
+        "bentuk_desc": (
+            "Proporsi dan kontur buah memberikan bentuk yang khas, terutama pada bagian atas "
+            "dan bawah buah."
+        ),
+        "tekstur_tags": "Halus • Mengilap • Sedikit berlilin",
+        "tekstur_desc": (
+            "Kondisi permukaan kulit dapat membantu membedakan karakter visual buah, terutama "
+            "dari pantulan cahaya dan tampilan kulit pada gambar."
+        ),
+        "warna_tags": "Merah • Hijau • Kuning",
+        "warna_desc": "Perbedaan warna dapat muncul karena varietas serta tingkat kematangan buah yang berbeda.",
     },
     "Orange": {
-        "bentuk": "Bulat dengan bagian atas dan bawah relatif rata.",
-        "tekstur": "Permukaan berpori dan sedikit kasar saat diraba.",
-        "pola": "Ciri visual keseluruhan sesuai karakteristik umum jeruk.",
+        "bentuk_tags": "Bulat • Rata di kedua ujung",
+        "bentuk_desc": (
+            "Proporsi dan kontur buah menunjukkan bentuk yang cenderung simetris, dengan bagian "
+            "atas dan bawah yang lebih rata dibanding apel."
+        ),
+        "tekstur_tags": "Berpori • Sedikit kasar • Kulit lebih tebal",
+        "tekstur_desc": (
+            "Kondisi permukaan kulit membantu membedakan karakter visual buah, terutama dari "
+            "tekstur pori dan pantulan cahaya yang lebih redup dibanding apel."
+        ),
+        "warna_tags": "Oranye • Kuning kecokelatan",
+        "warna_desc": "Perbedaan warna dapat muncul karena tingkat kematangan buah, meski jeruk umumnya lebih merata dibanding apel.",
     },
 }
 
 
-def build_grid_texts(label: str, color_info: dict) -> dict:
-    warna = f"Warna dominan terdeteksi {color_info['label']}, {color_info['desc']}."
-    g = GRID_INFO[label]
-    return {"warna": warna, "bentuk": g["bentuk"], "tekstur": g["tekstur"], "pola": g["pola"]}
+def build_visual_texts(label: str, color_info: dict) -> dict:
+    v = VISUAL_INFO[label]
+    warna_desc = (
+        f"Warna dominan pada gambar terdeteksi {color_info['label']} ({color_info['desc']}). "
+        f"{v['warna_desc']}"
+    )
+    return {
+        "warna_tags": v["warna_tags"],
+        "warna_desc": warna_desc,
+        "bentuk_tags": v["bentuk_tags"],
+        "bentuk_desc": v["bentuk_desc"],
+        "tekstur_tags": v["tekstur_tags"],
+        "tekstur_desc": v["tekstur_desc"],
+    }
 
 
 def build_interpretation_text(label: str, confidence: float) -> str:
@@ -576,30 +608,27 @@ def render_diagnosis():
             )
 
         color_info = st.session_state.color_info
-        grid = build_grid_texts(top_label, color_info)
+        visual = build_visual_texts(top_label, color_info)
 
         st.markdown(
             f"""
-            <div class="card">
-                <b>Karakteristik Visual</b>
-                <div class="analysis-grid" style="margin-top:0.7rem;">
-                    <div class="analysis-item">
-                        <div class="analysis-label">&#9670; WARNA</div>
-                        <p>{grid['warna']}</p>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-label">&#9632; BENTUK</div>
-                        <p>{grid['bentuk']}</p>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-label">&#9650; TEKSTUR</div>
-                        <p>{grid['tekstur']}</p>
-                    </div>
-                    <div class="analysis-item">
-                        <div class="analysis-label">&#9679; POLA</div>
-                        <p>{grid['pola']}</p>
-                    </div>
+            <div class="visual-title"><b>Karakteristik Visual</b></div>
+            <div class="visual-row">
+                <div class="card visual-card">
+                    <div class="visual-header">&#9670; WARNA</div>
+                    <div class="visual-tags">{visual['warna_tags']}</div>
+                    <p>{visual['warna_desc']}</p>
                 </div>
+                <div class="card visual-card">
+                    <div class="visual-header">&#9632; BENTUK</div>
+                    <div class="visual-tags">{visual['bentuk_tags']}</div>
+                    <p>{visual['bentuk_desc']}</p>
+                </div>
+            </div>
+            <div class="card visual-card-full">
+                <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
+                <div class="visual-tags">{visual['tekstur_tags']}</div>
+                <p>{visual['tekstur_desc']}</p>
             </div>
             """,
             unsafe_allow_html=True,
