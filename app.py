@@ -229,12 +229,16 @@ st.markdown(
         width: 100% !important;
         margin-bottom: 1.2rem !important;
     }}
+    [data-testid="stFileUploader"] > div {{
+        padding: 0 !important;
+    }}
     [data-testid="stFileUploaderDropzone"] {{
         position: relative !important;
         background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         border: 1.5px dashed #A7D7C5 !important;
         border-radius: 11px !important;
-        padding: 16px 20px !important;
+        padding: 14px 20px !important;
         min-height: 75px !important;
         display: flex !important;
         flex-direction: row !important;
@@ -249,8 +253,19 @@ st.markdown(
     }}
     [data-testid="stFileUploaderDropzone"]:hover {{
         background: #F4FBF7 !important;
+        background-color: #F4FBF7 !important;
         border-color: #52B788 !important;
         border-style: dashed !important;
+    }}
+    /* Hapus border bawaan Streamlit pada elemen pembungkus file info */
+    [data-testid="stFileUploaderDropzone"] > div,
+    [data-testid="stFileUploaderDropzone"] section {{
+        border: none !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }}
     /* Ikon cloud upload di sisi kiri */
     [data-testid="stFileUploaderDropzone"] svg {{
@@ -259,8 +274,10 @@ st.markdown(
         width: 28px !important;
         height: 28px !important;
         min-width: 28px !important;
+        max-width: 28px !important;
         flex-shrink: 0 !important;
         margin: 0 !important;
+        display: block !important;
         order: 1 !important;
     }}
     /* Teks instruksi & limit di samping icon, rata kiri vertikal bertingkat */
@@ -276,6 +293,8 @@ st.markdown(
         gap: 2px !important;
         margin: 0 !important;
         padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
     }}
     /* Judul Utama: Drag and drop file here */
     [data-testid="stFileUploaderDropzoneInstructions"] > div:first-child,
@@ -287,6 +306,7 @@ st.markdown(
         margin: 0 !important;
         line-height: 1.3 !important;
         letter-spacing: -0.1px !important;
+        border: none !important;
     }}
     /* Teks info batas file: Limit 200MB per file • JPG, JPEG, PNG */
     [data-testid="stFileUploaderDropzoneInstructions"] small,
@@ -296,6 +316,7 @@ st.markdown(
         color: #718096 !important;
         margin: 0 !important;
         line-height: 1.3 !important;
+        border: none !important;
     }}
     /* Sembunyikan tombol upload terpisah dan jadikan seluruh area dropzone klik-able */
     [data-testid="stFileUploaderDropzone"] button {{
