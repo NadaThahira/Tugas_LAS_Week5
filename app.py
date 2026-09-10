@@ -224,7 +224,9 @@ st.markdown(
     .barrow-fill {{ height: 100%; border-radius: 6px; }}
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
 
-    /* Komponen File Uploader: Single Clickable Drag-and-Drop Box */
+    /* =======================================================================
+       KOMPONEN FILE UPLOADER MODERN: SINGLE CLICKABLE DRAG & DROP BOX
+       ======================================================================= */
     [data-testid="stFileUploader"] {{
         width: 100% !important;
         margin-bottom: 1.2rem !important;
@@ -238,18 +240,19 @@ st.markdown(
         background-color: #FFFFFF !important;
         border: 1.5px dashed #A7D7C5 !important;
         border-radius: 11px !important;
-        padding: 14px 20px !important;
-        min-height: 75px !important;
+        padding: 16px 20px 16px 64px !important;
+        min-height: 76px !important;
+        height: auto !important;
         display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: flex-start !important;
-        gap: 16px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
         cursor: pointer !important;
         box-shadow: none !important;
         transition: background 180ms ease, border-color 180ms ease !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
+        text-align: left !important;
     }}
     [data-testid="stFileUploaderDropzone"]:hover {{
         background: #F4FBF7 !important;
@@ -257,68 +260,65 @@ st.markdown(
         border-color: #52B788 !important;
         border-style: dashed !important;
     }}
-    /* Hapus border bawaan Streamlit pada elemen pembungkus file info */
-    [data-testid="stFileUploaderDropzone"] > div,
+
+    /* 1. UPLOAD CLOUD ICON (Lucide CloudUpload SVG render pada ::before) */
+    [data-testid="stFileUploaderDropzone"]::before {{
+        content: "" !important;
+        position: absolute !important;
+        left: 20px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 28px !important;
+        height: 28px !important;
+        background-color: #2D6A4F !important;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/%3E%3Cpath d='M12 12v9'/%3E%3Cpath d='m16 16-4-4-4 4'/%3E%3C/svg%3E") no-repeat center / contain !important;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/%3E%3Cpath d='M12 12v9'/%3E%3Cpath d='m16 16-4-4-4 4'/%3E%3C/svg%3E") no-repeat center / contain !important;
+        z-index: 2 !important;
+        pointer-events: none !important;
+    }}
+
+    /* 2. PRIMARY TEXT: "Drag and drop file here" */
+    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
+        content: "Drag and drop file here" !important;
+        display: block !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: #2D3748 !important;
+        line-height: 1.35 !important;
+        letter-spacing: -0.1px !important;
+        margin-bottom: 2px !important;
+        text-align: left !important;
+        visibility: visible !important;
+    }}
+
+    /* 3. SECONDARY TEXT: "Limit 200MB per file • JPG, JPEG, PNG" */
+    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
+        content: "Limit 200MB per file • JPG, JPEG, PNG" !important;
+        display: block !important;
+        font-size: 12px !important;
+        font-weight: 400 !important;
+        color: #718096 !important;
+        line-height: 1.35 !important;
+        text-align: left !important;
+        visibility: visible !important;
+    }}
+
+    /* Bersihkan teks/node bawaan agar hanya teks eksplisit kita yang muncul */
+    [data-testid="stFileUploaderDropzoneInstructions"] > * {{
+        display: none !important;
+    }}
+
+    /* Sembunyikan elemen/svg bawaan Streamlit di dalam dropzone */
+    [data-testid="stFileUploaderDropzone"] svg,
     [data-testid="stFileUploaderDropzone"] section {{
         border: none !important;
         background: transparent !important;
-        background-color: transparent !important;
         box-shadow: none !important;
         padding: 0 !important;
         margin: 0 !important;
     }}
-    /* Ikon cloud upload di sisi kiri */
-    [data-testid="stFileUploaderDropzone"] svg {{
-        fill: #3A7D63 !important;
-        color: #3A7D63 !important;
-        width: 28px !important;
-        height: 28px !important;
-        min-width: 28px !important;
-        max-width: 28px !important;
-        flex-shrink: 0 !important;
-        margin: 0 !important;
-        display: block !important;
-        order: 1 !important;
-    }}
-    /* Teks instruksi & limit di samping icon, rata kiri vertikal bertingkat */
-    [data-testid="stFileUploaderDropzoneInstructions"] {{
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-        text-align: left !important;
-        flex: 1 1 auto !important;
-        order: 2 !important;
-        cursor: pointer !important;
-        gap: 2px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
-    }}
-    /* Judul Utama: Drag and drop file here */
-    [data-testid="stFileUploaderDropzoneInstructions"] > div:first-child,
-    [data-testid="stFileUploaderDropzoneInstructions"] p,
-    [data-testid="stFileUploaderDropzoneInstructions"] span:first-child {{
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
-        color: #2D3748 !important;
-        margin: 0 !important;
-        line-height: 1.3 !important;
-        letter-spacing: -0.1px !important;
-        border: none !important;
-    }}
-    /* Teks info batas file: Limit 200MB per file • JPG, JPEG, PNG */
-    [data-testid="stFileUploaderDropzoneInstructions"] small,
-    [data-testid="stFileUploaderDropzoneInstructions"] span:last-child {{
-        font-size: 0.8rem !important;
-        font-weight: 400 !important;
-        color: #718096 !important;
-        margin: 0 !important;
-        line-height: 1.3 !important;
-        border: none !important;
-    }}
-    /* Sembunyikan tombol upload terpisah dan jadikan seluruh area dropzone klik-able */
+
+    /* Buat seluruh area dropzone klik-able untuk membuka file picker */
     [data-testid="stFileUploaderDropzone"] button {{
         position: absolute !important;
         top: 0 !important;
