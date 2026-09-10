@@ -109,7 +109,7 @@ st.markdown(
     .block-container {{ 
         padding-top: 2rem !important; 
         padding-bottom: 3rem !important;
-        max-width: 680px !important; 
+        max-width: 900px !important; 
         margin-left: auto !important;
         margin-right: auto !important;
         box-sizing: border-box !important; 
@@ -453,6 +453,12 @@ st.markdown(
     [data-testid="StyledFullScreenButton"] svg {{
         fill: {t['primary']} !important;
         color: {t['primary']} !important;
+    }}
+    /* Paksa SEMUA ancestor pembungkus stImage ikut melebar penuh — kalau salah satu wrapper
+       di antaranya masih shrink-to-fit (lebar sebesar kontennya saja), justify-content:center
+       di bawah ini jadi tidak ada ruang untuk benar-benar menengahkan gambarnya. */
+    div:has([data-testid="stImage"]) {{
+        width: 100% !important;
     }}
     [data-testid="stImage"] {{
         display: flex !important;
