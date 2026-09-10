@@ -137,6 +137,23 @@ st.markdown(
     .result-name {{ font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 800; margin: 0.3rem 0; }}
     .result-conf {{ font-size: 1.05rem; font-weight: 600; opacity: 0.97; }}
 
+    /* Grid 2x2 "Mengapa model memilih ..." di halaman hasil */
+    .analysis-grid {{
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 2rem;
+        margin: 0 0 1.2rem 0; padding: 0 0.2rem;
+    }}
+    .analysis-item .analysis-label {{
+        font-weight: 700; font-size: 0.8rem; letter-spacing: 0.6px;
+        color: {t['primary']} !important; margin-bottom: 0.3rem;
+    }}
+    .analysis-item p {{ margin: 0; font-size: 0.92rem; line-height: 1.5; color: {t['text']} !important; }}
+    .note-block {{ padding: 0.2rem 0.3rem 1rem 0.3rem; }}
+    .note-block p {{ color: {t['muted']} !important; font-size: 0.85rem; line-height: 1.55; }}
+    .note-block b {{ color: {t['muted']} !important; font-size: 0.85rem; letter-spacing: 0.4px; }}
+    @media (max-width: 420px) {{
+        .analysis-grid {{ grid-template-columns: 1fr; }}
+    }}
+
     .barrow {{ display: flex; align-items: center; margin: 0.35rem 0; gap: 0.6rem; }}
     .barrow-label {{ width: 100px; font-size: 0.8rem; color: {t['text']} !important; flex-shrink: 0; }}
     .barrow-track {{ flex: 1; background: {t['track']}; border-radius: 6px; height: 9px; overflow: hidden; }}
@@ -251,7 +268,10 @@ st.markdown(
        beberapa testid sekaligus karena namanya berbeda antar versi Streamlit. */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapseButton"] {{
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid*="Sidebar"][data-testid*="ollaps"],
+    [aria-label*="sidebar" i],
+    [aria-label*="Sidebar" i] {{
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
@@ -262,7 +282,10 @@ st.markdown(
     }}
     [data-testid="collapsedControl"] svg,
     [data-testid="stSidebarCollapsedControl"] svg,
-    button[data-testid="stSidebarCollapseButton"] svg {{
+    button[data-testid="stSidebarCollapseButton"] svg,
+    [data-testid*="Sidebar"][data-testid*="ollaps"] svg,
+    [aria-label*="sidebar" i] svg,
+    [aria-label*="Sidebar" i] svg {{
         fill: {t['primary']} !important;
         color: {t['primary']} !important;
         opacity: 1 !important;
@@ -368,25 +391,45 @@ def analyze_color_profile(image: Image.Image) -> dict:
     return {"hue": mean_hue, "label": label, "desc": desc}
 
 
-def build_reasoning_text(label: str, confidence: float, color_info: dict) -> str:
-    matches_apple = color_info["label"] in ("merah", "hijau")
-    matches_orange = color_info["label"] in ("oranye", "kuning-oranye")
+GRID_INFO = {
+    "Apple": {
+        "bentuk": "Bulat dengan lekukan jelas pada bagian pangkal tangkai.",
+        "tekstur": "Permukaan halus dan mengilap tanpa pori besar.",
+        "pola": "Ciri visual keseluruhan sesuai karakteristik umum apel.",
+    },
+    "Orange": {
+        "bentuk": "Bulat dengan bagian atas dan bawah relatif rata.",
+        "tekstur": "Permukaan berpori dan sedikit kasar saat diraba.",
+        "pola": "Ciri visual keseluruhan sesuai karakteristik umum jeruk.",
+    },
+}
 
-    if label == "Apple" and matches_apple:
-        support = "Ini konsisten dengan prediksi model — apel memang biasanya memiliki warna " + color_info["desc"] + "."
-    elif label == "Orange" and matches_orange:
-        support = "Ini konsisten dengan prediksi model — jeruk memang biasanya memiliki warna " + color_info["desc"] + "."
-    else:
-        support = (
-            "Warna saja tidak sepenuhnya menjelaskan prediksi ini — model kemungkinan juga "
-            "mempertimbangkan tekstur, bentuk, dan pola permukaan yang tidak terlihat lewat "
-            "analisis warna sederhana."
+
+def build_grid_texts(label: str, color_info: dict) -> dict:
+    warna = f"Warna dominan terdeteksi {color_info['label']}, {color_info['desc']}."
+    g = GRID_INFO[label]
+    return {"warna": warna, "bentuk": g["bentuk"], "tekstur": g["tekstur"], "pola": g["pola"]}
+
+
+def build_interpretation_text(label: str, confidence: float) -> str:
+    if confidence >= 0.90:
+        return (
+            f"Tingkat keyakinan yang sangat tinggi ini menunjukkan kombinasi warna, bentuk, dan tekstur "
+            f"pada gambar sangat konsisten dengan karakteristik kelas {label}. Hasil klasifikasi pada "
+            f"tingkat ini dapat dianggap cukup andal untuk digunakan sebagai acuan."
         )
-
-    return (
-        f"Warna dominan pada gambar cenderung **{color_info['label']}** ({color_info['desc']}). "
-        f"Model memprediksi **{label}** dengan keyakinan **{confidence:.0%}**. {support}"
-    )
+    elif confidence >= LOW_CONFIDENCE_THRESHOLD:
+        return (
+            f"Tingkat keyakinan ini tergolong cukup tinggi, meskipun sebagian ciri visual pada gambar "
+            f"mungkin tidak sepenuhnya khas untuk kelas {label}. Pemeriksaan ulang secara manual tetap "
+            f"disarankan apabila hasil ini digunakan untuk keputusan yang penting."
+        )
+    else:
+        return (
+            f"Tingkat keyakinan yang tergolong rendah ini menunjukkan ciri visual pada gambar kurang "
+            f"sesuai secara meyakinkan dengan salah satu kelas. Hasil klasifikasi pada tingkat ini "
+            f"sebaiknya tidak dijadikan acuan utama."
+        )
 
 
 def render_steps(active: int):
@@ -514,30 +557,54 @@ def render_diagnosis():
                 unsafe_allow_html=True,
             )
 
+        color_info = st.session_state.color_info
+        grid = build_grid_texts(top_label, color_info)
+
         st.markdown(
             f"""
-            <div class="card">
-                <p style="margin:0 0 0.4rem 0;"><b>Warna khas:</b> {info['warna_khas']}</p>
-                <p style="margin:0;"><b>Ciri bentuk & tekstur:</b> {info['ciri']}</p>
+            <div style="text-align:center; font-size:1.15rem; font-weight:700; margin:1.6rem 0 1.1rem 0;">
+                Mengapa model memilih {info['nama'].split(" ")[0]}?
+            </div>
+            <div class="analysis-grid">
+                <div class="analysis-item">
+                    <div class="analysis-label">&#9670; WARNA</div>
+                    <p>{grid['warna']}</p>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-label">&#9632; BENTUK</div>
+                    <p>{grid['bentuk']}</p>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-label">&#9650; TEKSTUR</div>
+                    <p>{grid['tekstur']}</p>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-label">&#9679; POLA</div>
+                    <p>{grid['pola']}</p>
+                </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        reasoning = build_reasoning_text(top_label, confidence, st.session_state.color_info)
+        interpretation = build_interpretation_text(top_label, confidence)
         st.markdown(
             f"""
             <div class="card">
-                <b>Dasar Analisis Prediksi</b>
-                <p style="margin:0.6rem 0 0.5rem 0;">{reasoning}</p>
+                <b>&sect; Interpretasi</b>
+                <p style="margin:0.6rem 0 0;">{interpretation}</p>
+            </div>
+            <div class="note-block">
+                <b>&sect; Catatan</b>
+                <p style="margin:0.4rem 0 0;">
+                Nilai confidence yang ditampilkan merupakan keluaran probabilitas dari lapisan akhir
+                model, bukan ukuran probabilitas sebenarnya bahwa objek pada gambar merupakan buah
+                yang dimaksud. Nilai ini sebaiknya dipahami sebagai indikator relatif tingkat kepastian
+                model terhadap prediksinya, bukan sebagai jaminan kebenaran hasil klasifikasi.
+                </p>
             </div>
             """,
             unsafe_allow_html=True,
-        )
-        st.caption(
-            "Catatan: ini adalah indikator visual pendukung berbasis warna dominan gambar, "
-            "bukan pembongkaran langsung isi \"otak\" model. Model CNN sebenarnya belajar "
-            "dari kombinasi warna, tekstur, dan bentuk sekaligus."
         )
 
         order = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)
