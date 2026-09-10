@@ -308,7 +308,7 @@ st.markdown(
         color: {t['text']} !important;
         fill: {t['text']} !important;
     }}
-    /* Tombol X / Delete pada file uploader */
+    /* Tombol X / Delete pada file uploader (memastikan tampil jelas sebagai X bukan tambah) */
     [data-testid="stFileUploaderDeleteBtn"],
     [data-testid="stFileUploaderFileData"] button,
     [data-testid="stFileUploaderFile"] button,
@@ -316,50 +316,63 @@ st.markdown(
     [data-testid="stFileUploader"] button[aria-label*="delete" i],
     [data-testid="stFileUploader"] button[aria-label*="remove" i],
     [data-testid="stFileUploader"] button[aria-label*="close" i] {{
-        background-color: {t['track']} !important;
-        border: 1px solid {t['border']} !important;
+        background-color: {t['primary']} !important;
+        border: none !important;
         border-radius: 50% !important;
-        color: {t['primary']} !important;
-        padding: 0.25rem !important;
+        color: {t['primary_text']} !important;
+        padding: 0.2rem !important;
+        width: 24px !important;
+        height: 24px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
     }}
     [data-testid="stFileUploaderDeleteBtn"] svg,
     [data-testid="stFileUploaderDeleteBtn"] *,
     [data-testid="stFileUploaderFileData"] button svg,
     [data-testid="stFileUploaderFile"] button svg,
     [data-testid="stFileUploader"] button[aria-label*="delete" i] svg {{
-        color: {t['primary']} !important;
-        fill: {t['primary']} !important;
+        color: {t['primary_text']} !important;
+        fill: {t['primary_text']} !important;
+        transform: rotate(45deg); /* Mengubah tanda plus menjadi silang X */
     }}
 
-    .stButton button, .stDownloadButton button {{
-        background: {t['primary']} !important; color: {t['primary_text']} !important;
-        border: none !important; border-radius: 10px !important;
-    }}
-    [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; overflow: hidden !important; }}
-    [data-testid="stExpander"] summary,
-    [data-testid="stExpander"] summary:hover,
-    [data-testid="stExpander"] summary:focus,
-    [data-testid="stExpander"] details[open] summary,
-    [data-testid="stExpander"] details summary {{
+    /* Perbaiki tombol overlay fullscreen/zoom di pojok gambar agar tidak hitam pekat polos */
+    [data-testid="stImage"] button,
+    button[title="View fullscreen"],
+    button[aria-label="View fullscreen"],
+    [data-testid="StyledFullScreenButton"] {{
         background: {t['card']} !important;
+        border: 1px solid {t['border']} !important;
+        border-radius: 8px !important;
+        color: {t['primary']} !important;
+        opacity: 0.85 !important;
     }}
-    [data-testid="stExpanderDetails"] {{ background: {t['card']} !important; }}
-    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{ color: {t['text']} !important; }}
-    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary p, [data-testid="stExpander"] summary span,
-    [data-testid="stExpander"] summary div {{ font-weight: 700 !important; font-size: 1.05rem !important; }}
-    [data-testid="stExpander"] p, [data-testid="stExpander"] li, [data-testid="stExpander"] span {{ color: {t['text']} !important; }}
-
-    .stButton button p, .stButton button div, .stButton button span {{ color: {t['primary_text']} !important; font-weight: 600 !important; }}
-
-    .preview-wrap {{
-        display: flex;
-        justify-content: center;
-        margin-bottom: 0.5rem;
+    [data-testid="stImage"] button svg,
+    button[title="View fullscreen"] svg,
+    [data-testid="StyledFullScreenButton"] svg {{
+        fill: {t['primary']} !important;
+        color: {t['primary']} !important;
     }}
-    .preview-wrap img {{
-        border-radius: 12px;
-        max-width: 200px !important;
-        height: auto !important;
+    [data-testid="stImage"] {{
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        margin: 0 auto !important;
+    }}
+    [data-testid="stImage"] img {{
+        margin: 0 auto !important;
+        display: block !important;
+        border-radius: 12px !important;
+        border: 1px solid {t['border']} !important;
+    }}
+    [data-testid="stImageCaption"] {{
+        text-align: center !important;
+        color: {t['muted']} !important;
+        font-size: 0.82rem !important;
+        margin-top: 0.35rem !important;
     }}
 
     /* Sidebar navigasi */
@@ -620,22 +633,25 @@ def render_diagnosis():
         else:
             image = Image.open(uploaded)
 
-            # Preview lebih ringkas (max 200px) agar konfirmasi & tombol mulai klasifikasi muat dalam 1 layar
-            col_l, col_mid, col_r = st.columns([1, 1.6, 1])
+            # Preview lebih ringkas dan rata tengah
+            col_l, col_mid, col_r = st.columns([1, 1.4, 1])
             with col_mid:
-                st.image(image, caption="Preview Foto (Konfirmasi)", width=190)
+                st.image(image, caption="Preview Foto (Konfirmasi)", width=200)
 
             st.markdown(
                 f"""
-                <div class="card" style="text-align:center; padding: 0.8rem 1rem; margin-bottom: 0.8rem;">
-                    <div style="font-size:0.92rem; font-weight:600;">Periksa foto di atas sebelum memulai klasifikasi.</div>
-                    <div style="font-size:0.82rem; color:{t['muted']};">Pastikan buah terlihat jelas dan fokus.</div>
+                <div class="card" style="text-align:center; padding: 1.1rem 1.4rem; margin: 0.8rem 0 1rem 0;">
+                    <div style="font-size:1.05rem; font-weight:800; margin-bottom:0.45rem; color:{t['text']} !important;">Konfirmasi Foto</div>
+                    <div style="font-size:0.9rem; line-height:1.6; color:{t['muted']} !important;">
+                        Periksa foto sebelum memulai diagnosis.<br>
+                        Pastikan daun terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol × di bagian atas.
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            if st.button("🚀 Mulai Klasifikasi →", type="primary", use_container_width=True):
+            if st.button("Mulai Klasifikasi →", type="primary", use_container_width=True):
                 with st.spinner("Sedang menganalisis buah..."):
                     probs = predict(image)
                     color_info = analyze_color_profile(image)
@@ -682,7 +698,7 @@ def render_diagnosis():
         st.markdown(
             f"""
             <div class="visual-outer-card">
-                <div class="visual-main-header">🔍 Karakteristik Visual</div>
+                <div class="visual-main-header">§ Karakteristik Visual</div>
                 <div class="visual-grid">
                     <div class="visual-item-card">
                         <div class="visual-header">&#9670; WARNA</div>
