@@ -187,98 +187,45 @@ st.markdown(
     .barrow-fill {{ height: 100%; border-radius: 6px; }}
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
 
-    /* Komponen native Streamlit: uploader, tombol, expander */
+    /* Komponen native Streamlit: uploader, tombol, expander.
+       Catatan: kita sengaja TIDAK memaksa ulang layout (flex/order/overflow) dropzone-nya
+       seperti sebelumnya — itu yang membuat tombol "Browse files" dan chip file jadi
+       terpotong/berantakan. Di sini kita cuma mewarnai ulang elemen bawaan Streamlit,
+       struktur & urutannya dibiarkan seperti versi default (ikon awan, teks, tombol di
+       kanan, lalu chip file & preview di bawahnya). */
     [data-testid="stFileUploaderDropzone"] {{
-        background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
+        background: {t['input_bg']} !important;
+        border: 1px solid {t['border']} !important;
+        border-radius: 12px !important;
         padding: 1rem 1.2rem !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        align-items: center !important;
-        gap: 0.9rem !important;
-        overflow: hidden !important;
     }}
+    [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
+    [data-testid="stFileUploaderDropzone"] svg {{ fill: {t['muted']} !important; }}
+    [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
     [data-testid="stFileUploaderDropzone"] button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
         font-weight: 700 !important; border-radius: 8px !important;
-        order: 1 !important;
-        flex-shrink: 0 !important;
     }}
-    [data-testid="stFileUploaderDropzoneInstructions"] {{
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        order: 2 !important;
-        width: auto !important;
-        min-width: 0 !important;
-        flex: 1 1 160px !important;
-        max-width: 100% !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"]::before,
-    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
-        max-width: 100% !important;
-        overflow-wrap: break-word !important;
-        white-space: normal !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
-        content: "Pilih atau seret gambar untuk diunggah";
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: {t['text']} !important;
-        margin-bottom: 0.2rem;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"] span {{
-        font-size: 0 !important;
-        line-height: 0 !important;
-    }}
-    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
-        content: "JPG, PNG • Max 200MB";
-        display: block;
-        font-weight: 500;
-        font-size: 0.78rem;
-        color: {t['muted']} !important;
-    }}
-    [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
-    [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
     [data-testid="stFileUploaderDropzone"] button *,
     [data-testid="stFileUploaderDropzone"] button svg {{
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
     }}
-    /* Chip file yang sudah diunggah (nama file + ukuran) di dalam dropzone */
-    [data-testid="stFileUploaderFile"] {{
-        background: {t['input_bg']} !important;
-        border: 1px solid {t['border']} !important;
-        border-radius: 10px !important;
-        padding: 0.35rem 0.6rem !important;
-    }}
+    /* Chip file yang sudah diunggah — dibiarkan di posisi bawaannya (di bawah dropzone),
+       cuma diwarnai ulang supaya nama file & tombol hapus (x) tetap kontras & kebaca. */
+    [data-testid="stFileUploaderFile"] {{ background: transparent !important; }}
     [data-testid="stFileUploaderFile"] * {{ color: {t['text']} !important; }}
+    [data-testid="stFileUploaderFile"] svg {{ fill: {t['muted']} !important; }}
     [data-testid="stFileUploaderFileName"] {{ color: {t['text']} !important; font-weight: 600 !important; }}
     [data-testid="stFileUploaderFileData"],
     [data-testid="stFileUploaderFileData"] * {{ color: {t['muted']} !important; }}
-    /* Tombol hapus (x) pada chip — beri latar kontras supaya ikon x-nya terlihat jelas,
-       bukan lingkaran putih polos tanpa isi seperti sebelumnya */
-    [data-testid="stFileUploaderDeleteBtn"] {{
-        background: {t['track']} !important;
-        border: none !important;
-        border-radius: 50% !important;
-        opacity: 1 !important;
-    }}
-    [data-testid="stFileUploaderDeleteBtn"]:hover {{ background: {t['border']} !important; }}
+    [data-testid="stFileUploaderDeleteBtn"] {{ background: transparent !important; border: none !important; }}
+    [data-testid="stFileUploaderDeleteBtn"]:hover {{ background: {t['track']} !important; border-radius: 50% !important; }}
     [data-testid="stFileUploaderDeleteBtn"] svg,
     [data-testid="stFileUploaderDeleteBtn"] * {{
         fill: {t['text']} !important;
         color: {t['text']} !important;
         opacity: 1 !important;
-    }}
-    /* Sembunyikan tombol "+" (browse/ganti file) begitu satu file sudah dipilih — tidak
-       diperlukan lagi dan sebelumnya hanya tampil sebagai ikon terpotong tanpa label */
-    [data-testid="stFileUploaderDropzone"]:has([data-testid="stFileUploaderFile"]) button {{
-        display: none !important;
     }}
     .stButton button, .stDownloadButton button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important;
