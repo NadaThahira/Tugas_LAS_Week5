@@ -147,15 +147,23 @@ st.markdown(
         display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 2rem;
         margin: 0; padding: 0 0.2rem;
     }}
-    .section-title-caps {{
-        text-align: center; font-size: 1rem; font-weight: 800; text-transform: uppercase;
-        letter-spacing: 1.2px; color: {t['text']} !important; margin-bottom: 1.2rem;
-    }}
     .analysis-item .analysis-label {{
         font-weight: 700; font-size: 0.8rem; letter-spacing: 0.6px;
         color: {t['primary']} !important; margin-bottom: 0.3rem;
     }}
     .analysis-item p {{ margin: 0; font-size: 0.92rem; line-height: 1.5; color: {t['text']} !important; }}
+    /* Grid 2 kolom untuk kartu "Konfigurasi Model" di halaman Tentang */
+    .config-grid {{
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem;
+    }}
+    .config-item .config-label {{
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+        color: {t['muted']} !important; margin-bottom: 0.2rem;
+    }}
+    .config-item .config-value {{ font-size: 0.95rem; font-weight: 700; color: {t['text']} !important; }}
+    @media (max-width: 420px) {{
+        .config-grid {{ grid-template-columns: 1fr; }}
+    }}
     .note-block {{ padding: 0.2rem 0.3rem 1rem 0.3rem; }}
     .note-block p {{ color: {t['muted']} !important; font-size: 0.85rem; line-height: 1.55; }}
     .note-block b {{ color: {t['muted']} !important; font-size: 0.85rem; letter-spacing: 0.4px; }}
@@ -573,8 +581,8 @@ def render_diagnosis():
         st.markdown(
             f"""
             <div class="card">
-                <div class="section-title-caps">Karakteristik Visual</div>
-                <div class="analysis-grid">
+                <b>Karakteristik Visual</b>
+                <div class="analysis-grid" style="margin-top:0.7rem;">
                     <div class="analysis-item">
                         <div class="analysis-label">&#9670; WARNA</div>
                         <p>{grid['warna']}</p>
@@ -665,10 +673,34 @@ def render_about():
         </div>
 
         <div class="card">
-            <b>Model yang Digunakan</b>
-            <p style="margin:0.5rem 0 0.4rem 0; font-weight:600;">Custom CNN (dibangun dari nol)</p>
-            <p style="margin:0;">Model dilatih untuk membedakan Apple dan Orange dari citra 128×128
-            piksel.</p>
+            <b>Konfigurasi Model</b>
+            <p style="margin:0.5rem 0 0.9rem 0; font-weight:600;">Custom CNN (dibangun dari nol)</p>
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="config-label">Arsitektur</div>
+                    <div class="config-value">CNN VGG-style, 3 blok konvolusi</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Klasifikasi</div>
+                    <div class="config-value">Biner, 2 kelas</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Input</div>
+                    <div class="config-value">128 × 128 RGB</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Optimizer</div>
+                    <div class="config-value">Adam (lr 1e-4)</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Output</div>
+                    <div class="config-value">Apple / Orange</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Pembelajaran</div>
+                    <div class="config-value">Dilatih dari nol (scratch)</div>
+                </div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
