@@ -467,7 +467,7 @@ st.markdown(
         display: block !important;
         border-radius: 12px !important;
         border: 1px solid {t['border']} !important;
-        max-height: 280px !important;
+        max-height: 380px !important;
         width: auto !important;
         max-width: 100% !important;
         object-fit: contain !important;
@@ -737,7 +737,7 @@ def render_diagnosis():
         else:
             image = Image.open(uploaded)
 
-            col_l, col_mid, col_r = st.columns([1, 1.4, 1])
+            col_l, col_mid, col_r = st.columns([1, 3, 1])
             with col_mid:
                 st.image(image, use_container_width=True)
 
