@@ -106,7 +106,14 @@ st.markdown(
 
     .stApp {{ background: {t['bg']} !important; overflow-x: hidden !important; }}
     html, body {{ overflow-x: hidden !important; }}
-    .block-container {{ padding-top: 2rem; max-width: 100% !important; box-sizing: border-box !important; }}
+    .block-container {{ 
+        padding-top: 2rem !important; 
+        padding-bottom: 3rem !important;
+        max-width: 680px !important; 
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box !important; 
+    }}
 
     /* Paksa semua teks umum ikut warna tema kita */
     .stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] {{
