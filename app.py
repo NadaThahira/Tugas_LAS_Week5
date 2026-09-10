@@ -136,11 +136,20 @@ st.markdown(
     .result-label {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; opacity: 0.95; text-transform: uppercase; }}
     .result-name {{ font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 800; margin: 0.3rem 0; }}
     .result-conf {{ font-size: 1.05rem; font-weight: 600; opacity: 0.97; }}
+    .result-conf-track {{
+        margin: 0.75rem auto 0 auto; max-width: 320px; height: 8px; border-radius: 6px;
+        background: rgba(255,255,255,0.32); overflow: hidden;
+    }}
+    .result-conf-fill {{ height: 100%; border-radius: 6px; background: #FFFFFF; }}
 
     /* Grid 2x2 "Mengapa model memilih ..." di halaman hasil */
     .analysis-grid {{
         display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 2rem;
-        margin: 0 0 1.2rem 0; padding: 0 0.2rem;
+        margin: 0; padding: 0 0.2rem;
+    }}
+    .section-title-caps {{
+        text-align: center; font-size: 1rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 1.2px; color: {t['text']} !important; margin-bottom: 1.2rem;
     }}
     .analysis-item .analysis-label {{
         font-weight: 700; font-size: 0.8rem; letter-spacing: 0.6px;
@@ -541,6 +550,7 @@ def render_diagnosis():
                 <div class="result-label">Hasil Klasifikasi</div>
                 <div class="result-name">{info['nama']}</div>
                 <div class="result-conf">Tingkat keyakinan model: {confidence*100:.1f}%</div>
+                <div class="result-conf-track"><div class="result-conf-fill" style="width:{confidence*100:.1f}%;"></div></div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -562,25 +572,25 @@ def render_diagnosis():
 
         st.markdown(
             f"""
-            <div style="text-align:center; font-size:1.15rem; font-weight:700; margin:1.6rem 0 1.1rem 0;">
-                Mengapa model memilih {info['nama'].split(" ")[0]}?
-            </div>
-            <div class="analysis-grid">
-                <div class="analysis-item">
-                    <div class="analysis-label">&#9670; WARNA</div>
-                    <p>{grid['warna']}</p>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-label">&#9632; BENTUK</div>
-                    <p>{grid['bentuk']}</p>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-label">&#9650; TEKSTUR</div>
-                    <p>{grid['tekstur']}</p>
-                </div>
-                <div class="analysis-item">
-                    <div class="analysis-label">&#9679; POLA</div>
-                    <p>{grid['pola']}</p>
+            <div class="card">
+                <div class="section-title-caps">Karakteristik Visual</div>
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <div class="analysis-label">&#9670; WARNA</div>
+                        <p>{grid['warna']}</p>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">&#9632; BENTUK</div>
+                        <p>{grid['bentuk']}</p>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">&#9650; TEKSTUR</div>
+                        <p>{grid['tekstur']}</p>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">&#9679; POLA</div>
+                        <p>{grid['pola']}</p>
+                    </div>
                 </div>
             </div>
             """,
