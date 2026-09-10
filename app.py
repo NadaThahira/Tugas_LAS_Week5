@@ -142,23 +142,49 @@ st.markdown(
     }}
     .result-conf-fill {{ height: 100%; border-radius: 6px; background: #FFFFFF; }}
 
-    /* Kartu "Karakteristik Visual" di halaman hasil: judul di luar kartu, lalu dua kartu
-       (Warna, Bentuk) sejajar, dan satu kartu penuh (Tekstur Permukaan) di bawahnya. */
-    .visual-title {{ font-size: 1rem; margin: 1.4rem 0 0.8rem 0.2rem; }}
+    /* Box Karakteristik Visual: Judul berada di dalam kotak utama */
+    .visual-container {{
+        background: {t['card']};
+        border: 1px solid {t['border']};
+        border-radius: 14px;
+        padding: 1.3rem 1.5rem;
+        margin-bottom: 1rem;
+    }}
+    .visual-main-title {{
+        font-size: 1.08rem;
+        font-weight: 800;
+        color: {t['text']} !important;
+        margin-bottom: 1rem;
+    }}
     .visual-row {{ display: flex; gap: 1rem; margin-bottom: 1rem; }}
-    .visual-row .visual-card {{ flex: 1 1 0; min-width: 0; margin-bottom: 0; }}
-    .visual-card-full {{ margin-bottom: 1rem; }}
+    .visual-row .visual-card {{
+        flex: 1 1 0;
+        min-width: 0;
+        margin-bottom: 0;
+        background: {t['bg']};
+        border: 1px solid {t['border']};
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+    }}
+    .visual-card-full {{
+        background: {t['bg']};
+        border: 1px solid {t['border']};
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 0;
+    }}
     .visual-header {{
         font-weight: 700; font-size: 0.92rem; letter-spacing: 0.3px;
-        color: {t['primary']} !important; margin-bottom: 0.5rem;
+        color: {t['primary']} !important; margin-bottom: 0.4rem;
     }}
-    .visual-tags {{ font-weight: 700; font-size: 0.9rem; margin-bottom: 0.6rem; color: {t['text']} !important; }}
+    .visual-tags {{ font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: {t['text']} !important; }}
     .visual-card p, .visual-card-full p {{
         margin: 0; font-size: 0.88rem; line-height: 1.55; color: {t['text']} !important;
     }}
     @media (max-width: 480px) {{
         .visual-row {{ flex-direction: column; }}
     }}
+
     /* Grid 2 kolom untuk kartu "Konfigurasi Model" di halaman Tentang */
     .config-grid {{
         display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem;
@@ -188,10 +214,6 @@ st.markdown(
         max-width: 100% !important;
         box-sizing: border-box !important;
         position: relative !important;
-        /* Layout D: tombol Upload di kiri, blok teks (2 baris) di kanan, sejajar horizontal
-           dan rata tengah secara vertikal. flex-wrap + min-width:0 di bawah WAJIB ada supaya
-           kalau ruang tidak cukup (HP sempit), blok teks membungkus/menyusut alih-alih
-           memaksa seluruh halaman melebar & terpotong horizontal. */
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
@@ -221,10 +243,6 @@ st.markdown(
         overflow-wrap: break-word !important;
         white-space: normal !important;
     }}
-    /* Baris 1: judul besar/tebal "Drag & drop your image here" (menggantikan tampilan judul
-       bawaan Streamlit). Baris 2: keterangan tipe & ukuran file — teks asli dari Streamlit
-       disembunyikan lalu diganti dengan urutan kata custom lewat ::after, karena urutan kata
-       yang diminta ("JPG, PNG • Max 200MB") berbeda dari teks bawaan. */
     [data-testid="stFileUploaderDropzoneInstructions"]::before {{
         content: "Pilih atau seret gambar untuk diunggah";
         display: block;
@@ -234,7 +252,7 @@ st.markdown(
         margin-bottom: 0.2rem;
     }}
     [data-testid="stFileUploaderDropzoneInstructions"] span {{
-        font-size: 0 !important; /* sembunyikan teks asli, layout tetap dipertahankan lewat ::after di bawah */
+        font-size: 0 !important;
         line-height: 0 !important;
     }}
     [data-testid="stFileUploaderDropzoneInstructions"]::after {{
@@ -246,22 +264,27 @@ st.markdown(
     }}
     [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
     [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
-    /* Ikon & label DI DALAM tombol "Upload"/"Browse files" sempat ikut ketiban rule "*" di atas
-       (jadi teks gelap di atas tombol oranye = kontras rendah). Paksa semua elemen anak tombol
-       ini pakai warna terang supaya kontras terhadap latar oranye-nya. */
     [data-testid="stFileUploaderDropzone"] button *,
     [data-testid="stFileUploaderDropzone"] button svg {{
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
     }}
+    /* Chip file yang sudah diunggah */
+    [data-testid="stFileUploaderFileData"] {{
+        background-color: {t['input_bg']} !important;
+        border-radius: 10px !important;
+        border: 1px solid {t['border']} !important;
+        padding: 0.4rem 0.6rem !important;
+    }}
+    [data-testid="stFileUploaderFileData"] * {{
+        color: {t['text']} !important;
+    }}
+
     .stButton button, .stDownloadButton button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important;
         border: none !important; border-radius: 10px !important;
     }}
     [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; overflow: hidden !important; }}
-    /* Header expander (summary) sempat kebawa warna gelap bawaan Streamlit saat dibuka/hover/focus
-       karena kita cuma set background di container luar, bukan di summary-nya sendiri. Paksa
-       semua state (tertutup, hover, fokus, terbuka) pakai warna kartu tema kita. */
     [data-testid="stExpander"] summary,
     [data-testid="stExpander"] summary:hover,
     [data-testid="stExpander"] summary:focus,
@@ -275,18 +298,21 @@ st.markdown(
     [data-testid="stExpander"] summary div {{ font-weight: 700 !important; font-size: 1.05rem !important; }}
     [data-testid="stExpander"] p, [data-testid="stExpander"] li, [data-testid="stExpander"] span {{ color: {t['text']} !important; }}
 
-    /* Perkuat kontras teks tombol (beberapa versi Streamlit bungkus label di elemen anak) */
     .stButton button p, .stButton button div, .stButton button span {{ color: {t['primary_text']} !important; font-weight: 600 !important; }}
 
-    .scroll-box {{ max-height: 380px; overflow-y: auto; padding-right: 6px; }}
-
-    .preview-wrap img {{ border-radius: 12px; }}
+    .preview-wrap {{
+        display: flex;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }}
+    .preview-wrap img {{
+        border-radius: 12px;
+        max-width: 200px !important;
+        height: auto !important;
+    }}
 
     /* Sidebar navigasi */
     section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
-    /* Tombol untuk membuka kembali sidebar saat sedang ditutup — pastikan selalu terlihat
-       (kadang ikonnya jadi transparan/senada background sehingga sulit ditemukan). Menyasar
-       beberapa testid sekaligus karena namanya berbeda antar versi Streamlit. */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
     button[data-testid="stSidebarCollapseButton"],
@@ -316,7 +342,6 @@ st.markdown(
     .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: center; }}
     section[data-testid="stSidebar"] hr {{ border-color: {t['border']} !important; border-top: 1px solid {t['border']} !important; opacity: 1 !important; margin: 1rem 0 !important; }}
 
-    /* Pastikan konten sidebar (termasuk tombol) benar-benar rata kiri-kanan penuh, tanpa celah di sisi kanan */
     section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"],
     section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
     section[data-testid="stSidebar"] [data-testid="element-container"],
@@ -324,7 +349,6 @@ st.markdown(
         width: 100% !important;
     }}
 
-    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri, lebar penuh */
     section[data-testid="stSidebar"] .stButton button {{
         display: flex !important;
         background: transparent !important; color: {t['text']} !important; border: none !important;
@@ -333,21 +357,17 @@ st.markdown(
         padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
         width: 100% !important; box-sizing: border-box !important; margin: 0 !important;
     }}
-    /* Wildcard: paksa SEMUA elemen anak di dalam tombol (apapun tag/testid-nya, termasuk
-       stMarkdownContainer bawaan Streamlit) ikut rata kiri & lebar penuh, tanpa terkecuali */
     section[data-testid="stSidebar"] .stButton button * {{
         color: {t['text']} !important; font-weight: 500 !important;
         text-align: left !important; justify-content: flex-start !important;
         width: 100% !important; display: flex !important;
     }}
 
-    /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
     section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
     section[data-testid="stSidebar"] .stButton button:hover p,
     section[data-testid="stSidebar"] .stButton button:hover div,
     section[data-testid="stSidebar"] .stButton button:hover span {{ color: {t['text']} !important; }}
 
-    /* Tombol nav aktif (primary): background warna utama, teks kontras terhadap warna utama itu */
     section[data-testid="stSidebar"] button[kind="primary"] {{ background: {t['primary_dark']} !important; justify-content: flex-start !important; }}
     section[data-testid="stSidebar"] button[kind="primary"] * {{
         color: {t['primary_text']} !important; font-weight: 700 !important;
@@ -355,7 +375,6 @@ st.markdown(
         width: 100% !important; display: flex !important;
     }}
 
-    /* Hover pada tombol nav aktif: tetap kontras, tidak ikut jadi putih-di-atas-terang */
     section[data-testid="stSidebar"] button[kind="primary"]:hover {{ background: {t['primary']} !important; }}
     section[data-testid="stSidebar"] button[kind="primary"]:hover p,
     section[data-testid="stSidebar"] button[kind="primary"]:hover div,
@@ -550,24 +569,22 @@ def render_diagnosis():
         else:
             image = Image.open(uploaded)
 
-            col_l, col_mid, col_r = st.columns([1, 2, 1])
+            # Preview lebih ringkas (max 200px) agar konfirmasi & tombol mulai klasifikasi muat dalam 1 layar
+            col_l, col_mid, col_r = st.columns([1, 1.6, 1])
             with col_mid:
-                st.markdown('<div class="preview-wrap">', unsafe_allow_html=True)
-                st.image(image, use_container_width=True, caption="Preview foto")
-                st.markdown("</div>", unsafe_allow_html=True)
+                st.image(image, caption="Preview Foto (Konfirmasi)", width=190)
 
             st.markdown(
-                """
-                <div class="card" style="text-align:center;">
-                <div style="font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">Konfirmasi Foto</div>
-                <div>Periksa foto sebelum memulai klasifikasi.<br>
-                Pastikan buah terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol × di bagian atas.</div>
+                f"""
+                <div class="card" style="text-align:center; padding: 0.8rem 1rem; margin-bottom: 0.8rem;">
+                    <div style="font-size:0.92rem; font-weight:600;">Periksa foto di atas sebelum memulai klasifikasi.</div>
+                    <div style="font-size:0.82rem; color:{t['muted']};">Pastikan buah terlihat jelas dan fokus.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            if st.button("Mulai Klasifikasi →", type="primary", use_container_width=True):
+            if st.button("🚀 Mulai Klasifikasi →", type="primary", use_container_width=True):
                 with st.spinner("Sedang menganalisis buah..."):
                     probs = predict(image)
                     color_info = analyze_color_profile(image)
@@ -610,25 +627,28 @@ def render_diagnosis():
         color_info = st.session_state.color_info
         visual = build_visual_texts(top_label, color_info)
 
+        # Karakteristik Visual dibungkus di dalam 1 kotak utama dengan judul di dalam kotak
         st.markdown(
             f"""
-            <div class="visual-title"><b>Karakteristik Visual</b></div>
-            <div class="visual-row">
-                <div class="card visual-card">
-                    <div class="visual-header">&#9670; WARNA</div>
-                    <div class="visual-tags">{visual['warna_tags']}</div>
-                    <p>{visual['warna_desc']}</p>
+            <div class="visual-container">
+                <div class="visual-main-title">🔍 Karakteristik Visual</div>
+                <div class="visual-row">
+                    <div class="visual-card">
+                        <div class="visual-header">&#9670; WARNA</div>
+                        <div class="visual-tags">{visual['warna_tags']}</div>
+                        <p>{visual['warna_desc']}</p>
+                    </div>
+                    <div class="visual-card">
+                        <div class="visual-header">&#9632; BENTUK</div>
+                        <div class="visual-tags">{visual['bentuk_tags']}</div>
+                        <p>{visual['bentuk_desc']}</p>
+                    </div>
                 </div>
-                <div class="card visual-card">
-                    <div class="visual-header">&#9632; BENTUK</div>
-                    <div class="visual-tags">{visual['bentuk_tags']}</div>
-                    <p>{visual['bentuk_desc']}</p>
+                <div class="visual-card-full">
+                    <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
+                    <div class="visual-tags">{visual['tekstur_tags']}</div>
+                    <p>{visual['tekstur_desc']}</p>
                 </div>
-            </div>
-            <div class="card visual-card-full">
-                <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
-                <div class="visual-tags">{visual['tekstur_tags']}</div>
-                <p>{visual['tekstur_desc']}</p>
             </div>
             """,
             unsafe_allow_html=True,
