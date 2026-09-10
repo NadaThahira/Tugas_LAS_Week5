@@ -459,6 +459,7 @@ st.markdown(
         justify-content: center !important;
         align-items: center !important;
         text-align: center !important;
+        width: 100% !important;
         margin: 0 auto !important;
         position: relative !important;
     }}
@@ -467,9 +468,12 @@ st.markdown(
         display: block !important;
         border-radius: 12px !important;
         border: 1px solid {t['border']} !important;
+        /* Lebar tetap (bukan cuma max-height) supaya gambar beresolusi kecil pun tetap
+           tampil cukup besar dan konsisten, bukan mengikuti ukuran asli filenya. */
+        width: 280px !important;
+        max-width: 85% !important;
+        height: auto !important;
         max-height: 380px !important;
-        width: auto !important;
-        max-width: 100% !important;
         object-fit: contain !important;
     }}
     [data-testid="stImageCaption"] {{
@@ -737,9 +741,7 @@ def render_diagnosis():
         else:
             image = Image.open(uploaded)
 
-            col_l, col_mid, col_r = st.columns([1, 3, 1])
-            with col_mid:
-                st.image(image, use_container_width=True)
+            st.image(image, use_container_width=True)
 
             st.markdown(
                 f"""
