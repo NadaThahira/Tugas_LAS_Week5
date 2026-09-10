@@ -381,7 +381,7 @@ def render_diagnosis():
                 <ol class="tips-list">
                     <li>Klik kotak di atas, atau tarik dan lepas foto buah.</li>
                     <li>Gunakan foto <b>close-up satu buah</b> dengan pencahayaan cukup dan latar polos.</li>
-                    <li>Konfirmasi foto terlebih dahulu, kemudian sistem akan mengklasifikasikan dan menjelaskan alasannya.</li>
+                    <li>Konfirmasi gambar sebelum sistem melakukan klasifikasi dan menampilkan rekomendasi penanganan.</li>
                 </ol>
                 </div>
                 """,
