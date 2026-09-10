@@ -106,14 +106,7 @@ st.markdown(
 
     .stApp {{ background: {t['bg']} !important; overflow-x: hidden !important; }}
     html, body {{ overflow-x: hidden !important; }}
-    .block-container {{ 
-        padding-top: 2rem !important; 
-        padding-bottom: 3rem !important;
-        max-width: 680px !important; 
-        margin-left: auto !important;
-        margin-right: auto !important;
-        box-sizing: border-box !important; 
-    }}
+    .block-container {{ padding-top: 2rem; max-width: 100% !important; box-sizing: border-box !important; }}
 
     /* Paksa semua teks umum ikut warna tema kita */
     .stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] {{
@@ -149,66 +142,29 @@ st.markdown(
     }}
     .result-conf-fill {{ height: 100%; border-radius: 6px; background: #FFFFFF; }}
 
-    /* Box Karakteristik Visual & Interpretasi: Judul dan isi kartu rapi di dalam */
-    .visual-outer-card {{
-        background: {t['card']};
-        border: 1px solid {t['border']};
-        border-radius: 16px;
-        padding: 1.4rem 1.6rem;
-        margin-bottom: 1rem;
+    /* Kartu "Karakteristik Visual" di halaman hasil: judul kini di dalam kotak (card) yang sama
+       stylenya dengan kartu lain, lalu dua kartu (Warna, Bentuk) sejajar, dan satu kartu penuh
+       (Tekstur Permukaan) di bawahnya. */
+    .visual-title {{
+        font-size: 1rem; margin: 1.4rem 0 0.8rem 0;
+        background: {t['card']}; border: 1px solid {t['border']}; border-radius: 14px;
+        padding: 0.9rem 1.3rem;
     }}
-    .visual-main-header {{
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: {t['text']} !important;
-        margin: 0 0 1.1rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }}
-    .visual-grid {{
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }}
-    .visual-item-card {{
-        background: {t['bg']};
-        border: 1px solid {t['border']};
-        border-radius: 12px;
-        padding: 1.1rem 1.2rem;
-    }}
-    .visual-item-full {{
-        background: {t['bg']};
-        border: 1px solid {t['border']};
-        border-radius: 12px;
-        padding: 1.1rem 1.2rem;
-        margin-bottom: 0;
-    }}
+    .visual-title b {{ color: {t['text']} !important; font-weight: 800; font-size: 1.05rem; }}
+    .visual-row {{ display: flex; gap: 1rem; margin-bottom: 1rem; }}
+    .visual-row .visual-card {{ flex: 1 1 0; min-width: 0; margin-bottom: 0; }}
+    .visual-card-full {{ margin-bottom: 1rem; }}
     .visual-header {{
-        font-weight: 800;
-        font-size: 0.88rem;
-        letter-spacing: 0.5px;
-        color: {t['primary']} !important;
-        margin-bottom: 0.4rem;
-        text-transform: uppercase;
+        font-weight: 700; font-size: 0.92rem; letter-spacing: 0.3px;
+        color: {t['primary']} !important; margin-bottom: 0.5rem;
     }}
-    .visual-tags {{
-        font-weight: 700;
-        font-size: 0.92rem;
-        margin-bottom: 0.45rem;
-        color: {t['text']} !important;
+    .visual-tags {{ font-weight: 700; font-size: 0.9rem; margin-bottom: 0.6rem; color: {t['text']} !important; }}
+    .visual-card p, .visual-card-full p {{
+        margin: 0; font-size: 0.88rem; line-height: 1.55; color: {t['text']} !important;
     }}
-    .visual-item-card p, .visual-item-full p {{
-        margin: 0;
-        font-size: 0.88rem;
-        line-height: 1.55;
-        color: {t['text']} !important;
+    @media (max-width: 480px) {{
+        .visual-row {{ flex-direction: column; }}
     }}
-    @media (max-width: 580px) {{
-        .visual-grid {{ grid-template-columns: 1fr; }}
-    }}
-
     /* Grid 2 kolom untuk kartu "Konfigurasi Model" di halaman Tentang */
     .config-grid {{
         display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem;
@@ -231,222 +187,95 @@ st.markdown(
     .barrow-fill {{ height: 100%; border-radius: 6px; }}
     .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
 
-    /* =======================================================================
-       KOMPONEN FILE UPLOADER MODERN: SINGLE CLICKABLE DRAG & DROP BOX
-       ======================================================================= */
-    [data-testid="stFileUploader"] {{
-        width: 100% !important;
-        margin-bottom: 1.2rem !important;
-    }}
-    [data-testid="stFileUploader"] > div {{
-        padding: 0 !important;
-    }}
+    /* Komponen native Streamlit: uploader, tombol, expander */
     [data-testid="stFileUploaderDropzone"] {{
+        background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
+        padding: 1rem 1.2rem !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
         position: relative !important;
-        background: #FFFFFF !important;
-        background-color: #FFFFFF !important;
-        border: 1.5px dashed #A7D7C5 !important;
-        border-radius: 11px !important;
-        padding: 16px 22px !important;
-        min-height: 76px !important;
-        height: auto !important;
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: wrap !important;
         align-items: center !important;
-        justify-content: flex-start !important;
-        gap: 16px !important;
-        cursor: pointer !important;
-        box-shadow: none !important;
-        transition: background 180ms ease, border-color 180ms ease !important;
-        box-sizing: border-box !important;
+        gap: 0.9rem !important;
         overflow: hidden !important;
-        text-align: left !important;
     }}
-    [data-testid="stFileUploaderDropzone"]:hover {{
-        background: #F4FBF7 !important;
-        background-color: #F4FBF7 !important;
-        border-color: #52B788 !important;
-        border-style: dashed !important;
-    }}
-
-    /* 1. UPLOAD CLOUD ICON (Lucide CloudUpload SVG, 24px) */
-    [data-testid="stFileUploaderDropzone"]::before {{
-        content: "" !important;
-        display: block !important;
-        width: 24px !important;
-        height: 24px !important;
-        min-width: 24px !important;
-        max-width: 24px !important;
+    [data-testid="stFileUploaderDropzone"] button {{
+        background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
+        font-weight: 700 !important; border-radius: 8px !important;
+        order: 1 !important;
         flex-shrink: 0 !important;
-        background-color: #2D6A4F !important;
-        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/%3E%3Cpath d='M12 12v9'/%3E%3Cpath d='m16 16-4-4-4 4'/%3E%3C/svg%3E") no-repeat center / contain !important;
-        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/%3E%3Cpath d='M12 12v9'/%3E%3Cpath d='m16 16-4-4-4 4'/%3E%3C/svg%3E") no-repeat center / contain !important;
-        z-index: 2 !important;
-        pointer-events: none !important;
-        margin: 0 !important;
     }}
-
-    /* Container Blok Teks (Rata Kiri, Vertikal Bertingkat) */
     [data-testid="stFileUploaderDropzoneInstructions"] {{
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-start !important;
-        justify-content: center !important;
-        text-align: left !important;
-        gap: 3px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
-        flex: 1 1 auto !important;
+        order: 2 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        flex: 1 1 160px !important;
+        max-width: 100% !important;
     }}
-
-    /* 2. PRIMARY TEXT: "Drag and drop file here" (Baris Atas) */
-    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
-        content: "Drag and drop file here" !important;
-        display: block !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        color: #2D3748 !important;
-        line-height: 1.3 !important;
-        letter-spacing: -0.1px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        text-align: left !important;
-        visibility: visible !important;
-    }}
-
-    /* 3. SECONDARY TEXT: "Limit 200MB per file • JPG, JPEG, PNG" (Tepat di bawah baris atas, titik horizontal sama persis) */
+    [data-testid="stFileUploaderDropzoneInstructions"]::before,
     [data-testid="stFileUploaderDropzoneInstructions"]::after {{
-        content: "Limit 200MB per file • JPG, JPEG, PNG" !important;
-        display: block !important;
-        font-size: 12px !important;
-        font-weight: 400 !important;
-        color: #718096 !important;
-        line-height: 1.3 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        text-align: left !important;
-        visibility: visible !important;
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
     }}
-
-    /* Bersihkan teks/node bawaan agar hanya teks eksplisit kita yang muncul */
-    [data-testid="stFileUploaderDropzoneInstructions"] > * {{
-        display: none !important;
-    }}
-
-    /* Sembunyikan elemen/svg/section bawaan Streamlit di dalam dropzone */
-    [data-testid="stFileUploaderDropzone"] svg,
-    [data-testid="stFileUploaderDropzone"] section {{
-        display: none !important;
-    }}
-
-    /* Buat seluruh area dropzone klik-able untuk membuka file picker */
-    [data-testid="stFileUploaderDropzone"] button {{
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        opacity: 0 !important;
-        cursor: pointer !important;
-        z-index: 10 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
-    }}
-
-    /* Chip file yang sudah diunggah & semua elemen di dalamnya */
-    [data-testid="stFileUploaderFileData"],
-    [data-testid="stFileUploaderFile"],
-    [data-testid="stFileUploader"] ul,
-    [data-testid="stFileUploader"] li,
-    [data-testid="stFileUploader"] [data-testid*="file"],
-    [data-testid="stFileUploader"] [data-testid*="File"] {{
-        background-color: {t['card']} !important;
-        background: {t['card']} !important;
-        border-radius: 10px !important;
-        border: 1px solid {t['border']} !important;
+    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
+        content: "Pilih atau seret gambar untuk diunggah";
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 700;
         color: {t['text']} !important;
-        padding: 0.4rem 0.8rem !important;
+        margin-bottom: 0.2rem;
     }}
-    [data-testid="stFileUploaderFileData"] *,
-    [data-testid="stFileUploaderFile"] *,
-    [data-testid="stFileUploader"] ul *,
-    [data-testid="stFileUploader"] li * {{
-        background-color: transparent !important;
-        color: {t['text']} !important;
-        fill: {t['text']} !important;
+    [data-testid="stFileUploaderDropzoneInstructions"] span {{
+        font-size: 0 !important;
+        line-height: 0 !important;
     }}
-    /* Tombol X / Delete pada file uploader */
-    [data-testid="stFileUploaderDeleteBtn"],
-    [data-testid="stFileUploaderFileData"] button,
-    [data-testid="stFileUploaderFile"] button,
-    [data-testid="stFileUploader"] button[kind="secondary"],
-    [data-testid="stFileUploader"] button[aria-label*="delete" i],
-    [data-testid="stFileUploader"] button[aria-label*="remove" i],
-    [data-testid="stFileUploader"] button[aria-label*="close" i] {{
-        background-color: {t['primary']} !important;
-        border: none !important;
-        border-radius: 50% !important;
-        color: {t['primary_text']} !important;
-        padding: 0.2rem !important;
-        width: 24px !important;
-        height: 24px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
+    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
+        content: "JPG, PNG • Max 200MB";
+        display: block;
+        font-weight: 500;
+        font-size: 0.78rem;
+        color: {t['muted']} !important;
     }}
-    [data-testid="stFileUploaderDeleteBtn"] svg,
-    [data-testid="stFileUploaderDeleteBtn"] *,
-    [data-testid="stFileUploaderFileData"] button svg,
-    [data-testid="stFileUploaderFile"] button svg,
-    [data-testid="stFileUploader"] button[aria-label*="delete" i] svg {{
+    [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
+    [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
+    [data-testid="stFileUploaderDropzone"] button *,
+    [data-testid="stFileUploaderDropzone"] button svg {{
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
-        transform: rotate(45deg);
     }}
-
-    /* Perbaiki tombol overlay fullscreen/zoom di pojok gambar agar tidak hitam pekat polos */
-    [data-testid="stImage"] button,
-    button[title="View fullscreen"],
-    button[aria-label="View fullscreen"],
-    [data-testid="StyledFullScreenButton"] {{
+    .stButton button, .stDownloadButton button {{
+        background: {t['primary']} !important; color: {t['primary_text']} !important;
+        border: none !important; border-radius: 10px !important;
+    }}
+    [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; overflow: hidden !important; }}
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary:hover,
+    [data-testid="stExpander"] summary:focus,
+    [data-testid="stExpander"] details[open] summary,
+    [data-testid="stExpander"] details summary {{
         background: {t['card']} !important;
-        border: 1px solid {t['border']} !important;
-        border-radius: 8px !important;
-        color: {t['primary']} !important;
-        opacity: 0.85 !important;
     }}
-    [data-testid="stImage"] button svg,
-    button[title="View fullscreen"] svg,
-    [data-testid="StyledFullScreenButton"] svg {{
-        fill: {t['primary']} !important;
-        color: {t['primary']} !important;
-    }}
-    [data-testid="stImage"] {{
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        text-align: center !important;
-        margin: 0 auto !important;
-        position: relative !important;
-    }}
-    [data-testid="stImage"] img {{
-        margin: 0 auto !important;
-        display: block !important;
-        border-radius: 12px !important;
-        border: 1px solid {t['border']} !important;
-    }}
-    [data-testid="stImageCaption"] {{
-        text-align: center !important;
-        color: {t['muted']} !important;
-        font-size: 0.82rem !important;
-        margin-top: 0.35rem !important;
+    [data-testid="stExpanderDetails"] {{ background: {t['card']} !important; }}
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{ color: {t['text']} !important; }}
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary p, [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary div {{ font-weight: 700 !important; font-size: 1.05rem !important; }}
+    [data-testid="stExpander"] p, [data-testid="stExpander"] li, [data-testid="stExpander"] span {{ color: {t['text']} !important; }}
+
+    .stButton button p, .stButton button div, .stButton button span {{ color: {t['primary_text']} !important; font-weight: 600 !important; }}
+
+    .scroll-box {{ max-height: 380px; overflow-y: auto; padding-right: 6px; }}
+
+    /* Preview foto di stage 1: dibatasi tingginya supaya kartu Konfirmasi Foto + tombol
+       Mulai Klasifikasi tetap muat dalam satu layar tanpa perlu scroll. */
+    .preview-wrap img {{
+        border-radius: 12px; max-height: 180px; width: auto !important;
+        object-fit: contain; display: block; margin: 0 auto;
     }}
 
     /* Sidebar navigasi */
@@ -707,19 +536,18 @@ def render_diagnosis():
         else:
             image = Image.open(uploaded)
 
-            # Preview lebih ringkas dan rata tengah
-            col_l, col_mid, col_r = st.columns([1, 1.4, 1])
+            col_l, col_mid, col_r = st.columns([1, 1, 1])
             with col_mid:
-                st.image(image, caption="Preview Foto (Konfirmasi)", width=200)
+                st.markdown('<div class="preview-wrap">', unsafe_allow_html=True)
+                st.image(image, use_container_width=True, caption="Preview foto")
+                st.markdown("</div>", unsafe_allow_html=True)
 
             st.markdown(
-                f"""
-                <div class="card" style="text-align:center; padding: 1.1rem 1.4rem; margin: 0.8rem 0 1rem 0;">
-                    <div style="font-size:1.05rem; font-weight:800; margin-bottom:0.45rem; color:{t['text']} !important;">Konfirmasi Foto</div>
-                    <div style="font-size:0.9rem; line-height:1.6; color:{t['muted']} !important;">
-                        Periksa foto sebelum memulai diagnosis.<br>
-                        Pastikan daun terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol × di bagian atas.
-                    </div>
+                """
+                <div class="card" style="text-align:center;">
+                <div style="font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">Konfirmasi Foto</div>
+                <div>Periksa foto sebelum memulai klasifikasi.<br>
+                Pastikan buah terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol × di bagian atas.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -768,28 +596,25 @@ def render_diagnosis():
         color_info = st.session_state.color_info
         visual = build_visual_texts(top_label, color_info)
 
-        # Karakteristik Visual dibungkus di dalam 1 kotak kartu utama, judul di dalam kotak
         st.markdown(
             f"""
-            <div class="visual-outer-card">
-                <div class="visual-main-header">§ Karakteristik Visual</div>
-                <div class="visual-grid">
-                    <div class="visual-item-card">
-                        <div class="visual-header">&#9670; WARNA</div>
-                        <div class="visual-tags">{visual['warna_tags']}</div>
-                        <p>{visual['warna_desc']}</p>
-                    </div>
-                    <div class="visual-item-card">
-                        <div class="visual-header">&#9632; BENTUK</div>
-                        <div class="visual-tags">{visual['bentuk_tags']}</div>
-                        <p>{visual['bentuk_desc']}</p>
-                    </div>
+            <div class="visual-title"><b>Karakteristik Visual</b></div>
+            <div class="visual-row">
+                <div class="card visual-card">
+                    <div class="visual-header">&#9670; WARNA</div>
+                    <div class="visual-tags">{visual['warna_tags']}</div>
+                    <p>{visual['warna_desc']}</p>
                 </div>
-                <div class="visual-item-full">
-                    <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
-                    <div class="visual-tags">{visual['tekstur_tags']}</div>
-                    <p>{visual['tekstur_desc']}</p>
+                <div class="card visual-card">
+                    <div class="visual-header">&#9632; BENTUK</div>
+                    <div class="visual-tags">{visual['bentuk_tags']}</div>
+                    <p>{visual['bentuk_desc']}</p>
                 </div>
+            </div>
+            <div class="card visual-card-full">
+                <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
+                <div class="visual-tags">{visual['tekstur_tags']}</div>
+                <p>{visual['tekstur_desc']}</p>
             </div>
             """,
             unsafe_allow_html=True,
