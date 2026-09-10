@@ -142,47 +142,64 @@ st.markdown(
     }}
     .result-conf-fill {{ height: 100%; border-radius: 6px; background: #FFFFFF; }}
 
-    /* Box Karakteristik Visual: Judul berada di dalam kotak utama */
-    .visual-container {{
+    /* Box Karakteristik Visual & Interpretasi: Judul dan isi kartu rapi di dalam */
+    .visual-outer-card {{
         background: {t['card']};
         border: 1px solid {t['border']};
-        border-radius: 14px;
-        padding: 1.3rem 1.5rem;
+        border-radius: 16px;
+        padding: 1.4rem 1.6rem;
         margin-bottom: 1rem;
     }}
-    .visual-main-title {{
-        font-size: 1.08rem;
+    .visual-main-header {{
+        font-size: 1.15rem;
         font-weight: 800;
         color: {t['text']} !important;
+        margin: 0 0 1.1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }}
+    .visual-grid {{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
         margin-bottom: 1rem;
     }}
-    .visual-row {{ display: flex; gap: 1rem; margin-bottom: 1rem; }}
-    .visual-row .visual-card {{
-        flex: 1 1 0;
-        min-width: 0;
-        margin-bottom: 0;
+    .visual-item-card {{
         background: {t['bg']};
         border: 1px solid {t['border']};
-        border-radius: 10px;
-        padding: 1rem 1.1rem;
+        border-radius: 12px;
+        padding: 1.1rem 1.2rem;
     }}
-    .visual-card-full {{
+    .visual-item-full {{
         background: {t['bg']};
         border: 1px solid {t['border']};
-        border-radius: 10px;
-        padding: 1rem 1.1rem;
+        border-radius: 12px;
+        padding: 1.1rem 1.2rem;
         margin-bottom: 0;
     }}
     .visual-header {{
-        font-weight: 700; font-size: 0.92rem; letter-spacing: 0.3px;
-        color: {t['primary']} !important; margin-bottom: 0.4rem;
+        font-weight: 800;
+        font-size: 0.88rem;
+        letter-spacing: 0.5px;
+        color: {t['primary']} !important;
+        margin-bottom: 0.4rem;
+        text-transform: uppercase;
     }}
-    .visual-tags {{ font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: {t['text']} !important; }}
-    .visual-card p, .visual-card-full p {{
-        margin: 0; font-size: 0.88rem; line-height: 1.55; color: {t['text']} !important;
+    .visual-tags {{
+        font-weight: 700;
+        font-size: 0.92rem;
+        margin-bottom: 0.45rem;
+        color: {t['text']} !important;
     }}
-    @media (max-width: 480px) {{
-        .visual-row {{ flex-direction: column; }}
+    .visual-item-card p, .visual-item-full p {{
+        margin: 0;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        color: {t['text']} !important;
+    }}
+    @media (max-width: 580px) {{
+        .visual-grid {{ grid-template-columns: 1fr; }}
     }}
 
     /* Grid 2 kolom untuk kartu "Konfigurasi Model" di halaman Tentang */
@@ -269,15 +286,49 @@ st.markdown(
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
     }}
-    /* Chip file yang sudah diunggah */
-    [data-testid="stFileUploaderFileData"] {{
-        background-color: {t['input_bg']} !important;
+
+    /* Chip file yang sudah diunggah & semua elemen di dalamnya */
+    [data-testid="stFileUploaderFileData"],
+    [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploader"] ul,
+    [data-testid="stFileUploader"] li,
+    [data-testid="stFileUploader"] [data-testid*="file"],
+    [data-testid="stFileUploader"] [data-testid*="File"] {{
+        background-color: {t['card']} !important;
+        background: {t['card']} !important;
         border-radius: 10px !important;
         border: 1px solid {t['border']} !important;
-        padding: 0.4rem 0.6rem !important;
-    }}
-    [data-testid="stFileUploaderFileData"] * {{
         color: {t['text']} !important;
+    }}
+    [data-testid="stFileUploaderFileData"] *,
+    [data-testid="stFileUploaderFile"] *,
+    [data-testid="stFileUploader"] ul *,
+    [data-testid="stFileUploader"] li * {{
+        background-color: transparent !important;
+        color: {t['text']} !important;
+        fill: {t['text']} !important;
+    }}
+    /* Tombol X / Delete pada file uploader */
+    [data-testid="stFileUploaderDeleteBtn"],
+    [data-testid="stFileUploaderFileData"] button,
+    [data-testid="stFileUploaderFile"] button,
+    [data-testid="stFileUploader"] button[kind="secondary"],
+    [data-testid="stFileUploader"] button[aria-label*="delete" i],
+    [data-testid="stFileUploader"] button[aria-label*="remove" i],
+    [data-testid="stFileUploader"] button[aria-label*="close" i] {{
+        background-color: {t['track']} !important;
+        border: 1px solid {t['border']} !important;
+        border-radius: 50% !important;
+        color: {t['primary']} !important;
+        padding: 0.25rem !important;
+    }}
+    [data-testid="stFileUploaderDeleteBtn"] svg,
+    [data-testid="stFileUploaderDeleteBtn"] *,
+    [data-testid="stFileUploaderFileData"] button svg,
+    [data-testid="stFileUploaderFile"] button svg,
+    [data-testid="stFileUploader"] button[aria-label*="delete" i] svg {{
+        color: {t['primary']} !important;
+        fill: {t['primary']} !important;
     }}
 
     .stButton button, .stDownloadButton button {{
@@ -627,24 +678,24 @@ def render_diagnosis():
         color_info = st.session_state.color_info
         visual = build_visual_texts(top_label, color_info)
 
-        # Karakteristik Visual dibungkus di dalam 1 kotak utama dengan judul di dalam kotak
+        # Karakteristik Visual dibungkus di dalam 1 kotak kartu utama, judul di dalam kotak
         st.markdown(
             f"""
-            <div class="visual-container">
-                <div class="visual-main-title">🔍 Karakteristik Visual</div>
-                <div class="visual-row">
-                    <div class="visual-card">
+            <div class="visual-outer-card">
+                <div class="visual-main-header">🔍 Karakteristik Visual</div>
+                <div class="visual-grid">
+                    <div class="visual-item-card">
                         <div class="visual-header">&#9670; WARNA</div>
                         <div class="visual-tags">{visual['warna_tags']}</div>
                         <p>{visual['warna_desc']}</p>
                     </div>
-                    <div class="visual-card">
+                    <div class="visual-item-card">
                         <div class="visual-header">&#9632; BENTUK</div>
                         <div class="visual-tags">{visual['bentuk_tags']}</div>
                         <p>{visual['bentuk_desc']}</p>
                     </div>
                 </div>
-                <div class="visual-card-full">
+                <div class="visual-item-full">
                     <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
                     <div class="visual-tags">{visual['tekstur_tags']}</div>
                     <p>{visual['tekstur_desc']}</p>
