@@ -359,22 +359,50 @@ st.markdown(
         background: transparent !important;
     }}
 
-    /* Chip file yang sudah diunggah & semua elemen di dalamnya */
-    [data-testid="stFileUploaderFileData"],
-    [data-testid="stFileUploaderFile"],
+    /* Ketika file sudah diunggah, sembunyikan kotak dropzone agar hanya chip file preview yang terlihat */
+    [data-testid="stFileUploader"]:has([data-testid*="file" i]) [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"]:has([data-testid*="File" i]) [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"]:has(ul) [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"]:has(li) [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"]:has([data-testid="stFileUploaderFileData"]) [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"]:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"]:has([data-testid="stFileUploaderDeleteBtn"]) [data-testid="stFileUploaderDropzone"] {{
+        display: none !important;
+    }}
+
+    /* Container File Preview: Satu baris rapi (Thumbnail, Nama File, Tombol X Merah) */
     [data-testid="stFileUploader"] ul,
     [data-testid="stFileUploader"] li,
-    [data-testid="stFileUploader"] [data-testid*="file"],
-    [data-testid="stFileUploader"] [data-testid*="File"] {{
-        background-color: {t['card']} !important;
-        background: {t['card']} !important;
-        border-radius: 10px !important;
+    [data-testid="stFileUploaderFileData"],
+    [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploader"] [data-testid*="file" i],
+    [data-testid="stFileUploader"] [data-testid*="File" i] {{
+        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         border: 1px solid {t['border']} !important;
-        color: {t['text']} !important;
-        padding: 0.5rem 0.9rem !important;
+        border-radius: 11px !important;
+        padding: 8px 16px !important;
         display: flex !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
+        box-shadow: none !important;
+        margin: 0.5rem 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        list-style: none !important;
+    }}
+    /* Hapus border dobel/bersarang pada sub-elemen file preview */
+    [data-testid="stFileUploader"] ul > li,
+    [data-testid="stFileUploader"] li > div,
+    [data-testid="stFileUploaderFileData"] div,
+    [data-testid="stFileUploaderFile"] div {{
+        border: none !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
     [data-testid="stFileUploaderFileData"] *,
     [data-testid="stFileUploaderFile"] *,
@@ -384,7 +412,7 @@ st.markdown(
     }}
 
     /* =======================================================================
-       TOMBOL HAPUS (X) PADA FILE UPLOADER & PREVIEW: CIRCULAR BUTTON DENGAN ICON X PUTIH
+       TOMBOL HAPUS (X) TUNGGAL: CIRCULAR BUTTON MERAH DENGAN SIMBOL X PUTIH
        ======================================================================= */
     [data-testid="stFileUploaderDeleteBtn"],
     [data-testid="stFileUploaderFileData"] button,
@@ -393,27 +421,29 @@ st.markdown(
     [data-testid="stFileUploader"] li button,
     [data-testid="stFileUploader"] button[aria-label*="delete" i],
     [data-testid="stFileUploader"] button[aria-label*="remove" i],
-    [data-testid="stFileUploader"] button[aria-label*="close" i],
-    [data-testid="stFileUploader"] button[kind="secondary"] {{
+    [data-testid="stFileUploader"] button[aria-label*="close" i] {{
         position: relative !important;
         background-color: #DC2626 !important;
         background: #DC2626 !important;
         border: none !important;
         border-radius: 50% !important;
         color: #FFFFFF !important;
-        width: 26px !important;
-        height: 26px !important;
-        min-width: 26px !important;
-        min-height: 26px !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        max-width: 28px !important;
+        max-height: 28px !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin: 0 0 0 auto !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
         transition: background-color 150ms ease, transform 150ms ease !important;
         overflow: hidden !important;
+        flex-shrink: 0 !important;
     }}
     [data-testid="stFileUploaderDeleteBtn"]:hover,
     [data-testid="stFileUploaderFileData"] button:hover,
@@ -425,9 +455,9 @@ st.markdown(
     [data-testid="stFileUploader"] button[aria-label*="close" i]:hover {{
         background-color: #B91C1C !important;
         background: #B91C1C !important;
-        transform: scale(1.06) !important;
+        transform: scale(1.08) !important;
     }}
-    /* Tampilkan simbol X putih bersih di tengah tombol */
+    /* Simbol X warna putih murni tepat di tengah tombol */
     [data-testid="stFileUploaderDeleteBtn"]::after,
     [data-testid="stFileUploaderFileData"] button::after,
     [data-testid="stFileUploaderFile"] button::after,
@@ -438,9 +468,9 @@ st.markdown(
     [data-testid="stFileUploader"] button[aria-label*="close" i]::after {{
         content: "×" !important;
         display: block !important;
-        font-size: 19px !important;
+        font-size: 18px !important;
         line-height: 1 !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         color: #FFFFFF !important;
         position: absolute !important;
         top: 50% !important;
@@ -458,23 +488,20 @@ st.markdown(
         display: none !important;
     }}
 
-    /* Tombol overlay fullscreen/zoom pada gambar */
+    /* Sembunyikan semua tombol zoom/fullscreen overlay di atas preview gambar */
     [data-testid="stImage"] button,
+    [data-testid="stImage"] [data-testid="StyledFullScreenButton"],
     button[title="View fullscreen"],
     button[aria-label="View fullscreen"],
     [data-testid="StyledFullScreenButton"] {{
-        background: {t['card']} !important;
-        border: 1px solid {t['border']} !important;
-        border-radius: 8px !important;
-        color: {t['primary']} !important;
-        opacity: 0.9 !important;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
-    }}
-    [data-testid="stImage"] button svg,
-    button[title="View fullscreen"] svg,
-    [data-testid="StyledFullScreenButton"] svg {{
-        fill: {t['primary']} !important;
-        color: {t['primary']} !important;
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
     [data-testid="stImage"] {{
         display: flex !important;
@@ -482,6 +509,7 @@ st.markdown(
         align-items: center !important;
         text-align: center !important;
         margin: 0 auto !important;
+        position: relative !important;
     }}
     [data-testid="stImage"] img {{
         margin: 0 auto !important;
