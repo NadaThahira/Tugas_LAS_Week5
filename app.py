@@ -226,13 +226,21 @@ st.markdown(
 
     /* Komponen native Streamlit: uploader, tombol, expander */
     [data-testid="stFileUploader"] {{
-        max-width: 100% !important;
+        width: 100% !important;
+        margin-bottom: 1rem !important;
     }}
     [data-testid="stFileUploaderDropzone"] {{
         background: {t['card']} !important;
         border: 2px dashed {t['border']} !important;
-        border-radius: 12px !important;
-        padding: 1.4rem !important;
+        border-radius: 14px !important;
+        padding: 1.8rem 1.5rem !important;
+        min-height: 120px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 0.6rem !important;
     }}
     [data-testid="stFileUploaderDropzone"]:hover {{
         border-color: {t['primary']} !important;
@@ -243,7 +251,12 @@ st.markdown(
         border: none !important;
         font-weight: 600 !important;
         border-radius: 8px !important;
-        padding: 0.45rem 1rem !important;
+        padding: 0.45rem 1.2rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: auto !important;
+        min-width: 120px !important;
     }}
     [data-testid="stFileUploaderDropzone"] button * {{
         color: {t['primary_text']} !important;
@@ -251,6 +264,7 @@ st.markdown(
     }}
     [data-testid="stFileUploaderDropzoneInstructions"] {{
         color: {t['text']} !important;
+        text-align: center !important;
     }}
     [data-testid="stFileUploaderDropzoneInstructions"] * {{
         color: {t['muted']} !important;
@@ -268,6 +282,7 @@ st.markdown(
         border-radius: 10px !important;
         border: 1px solid {t['border']} !important;
         color: {t['text']} !important;
+        padding: 0.4rem 0.8rem !important;
     }}
     [data-testid="stFileUploaderFileData"] *,
     [data-testid="stFileUploaderFile"] *,
@@ -277,7 +292,7 @@ st.markdown(
         color: {t['text']} !important;
         fill: {t['text']} !important;
     }}
-    /* Tombol X / Delete pada file uploader (memastikan tampil jelas sebagai X bukan tambah) */
+    /* Tombol X / Delete pada file uploader */
     [data-testid="stFileUploaderDeleteBtn"],
     [data-testid="stFileUploaderFileData"] button,
     [data-testid="stFileUploaderFile"] button,
@@ -304,7 +319,7 @@ st.markdown(
     [data-testid="stFileUploader"] button[aria-label*="delete" i] svg {{
         color: {t['primary_text']} !important;
         fill: {t['primary_text']} !important;
-        transform: rotate(45deg); /* Mengubah tanda plus menjadi silang X */
+        transform: rotate(45deg);
     }}
 
     /* Perbaiki tombol overlay fullscreen/zoom di pojok gambar agar tidak hitam pekat polos */
