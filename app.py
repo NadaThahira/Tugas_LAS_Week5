@@ -1,504 +1,781 @@
 """
-Apple vs Orange Classifier — Streamlit Deployment App
-Author  : Nada Thahira Sosa (2601)
-Project : LAS26 Case 1 — Week 2/3/4 Big Data / Machine Learning
-Models  : Custom CNN (from scratch) & MobileNetV2 (transfer learning)
-
-Run locally:
-    streamlit run app.py
-
-Required files in the same folder:
-    - custom_cnn_model.h5
-    - pretrained_mobilenetv2_model.h5
+FruitID — Apple & Orange Recognition
+Deployment model: CNN Custom
 """
 
-import io
-import time
 from pathlib import Path
 
 import numpy as np
 import streamlit as st
-import tensorflow as tf
 from PIL import Image
+import tensorflow as tf
 
-# --------------------------------------------------------------------------------------
-# PAGE CONFIG
-# --------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# KONFIGURASI HALAMAN
+# ----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Apple vs Orange Classifier",
+    page_title="FruitID — Apple & Orange Recognition",
     page_icon="🍎",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="expanded",
 )
 
-IMG_SIZE = 128
-MODEL_FILES = {
-    "Custom CNN": "custom_cnn_model.h5",
-    "MobileNetV2 (Transfer Learning)": "pretrained_mobilenetv2_model.h5",
-}
-MODEL_METRICS = {
-    "Custom CNN": {
-        "accuracy": 0.9313,
-        "f1": 0.9308,
-        "params": "157,473",
-        "trainable": "156,769",
-        "epochs": 47,
-        "color": "#EF4444",
-        "note": "Dibangun dari nol (VGG-style 3x3 conv blocks). Ringan, self-contained, "
-                "tidak butuh koneksi internet untuk bobot pretrained.",
-    },
-    "MobileNetV2 (Transfer Learning)": {
-        "accuracy": 0.9563,
-        "f1": 0.9554,
-        "params": "2,422,593",
-        "trainable": "164,353",
-        "epochs": 94,
-        "color": "#F97316",
-        "note": "Backbone ImageNet di-freeze, hanya classifier head yang dilatih. "
-                "Akurasi tertinggi & konvergen lebih cepat ke performa tinggi.",
-    },
-}
-CLASS_NAMES = ["Apple", "Orange"]
-CLASS_EMOJI = {"Apple": "🍎", "Orange": "🍊"}
-CLASS_COLOR = {"Apple": "#EF4444", "Orange": "#F97316"}
+IMG_SIZE = (128, 128)
+MODEL_PATH = "custom_cnn_model.h5"
+CLASS_NAMES = {0: "Apple", 1: "Orange"}  # sesuaikan urutan label dengan training
+LOW_CONFIDENCE_THRESHOLD = 0.65
 
-# --------------------------------------------------------------------------------------
-# STYLE
-# --------------------------------------------------------------------------------------
+FRUIT_INFO = {
+    "Apple": {
+        "nama": "Apple (Apel)",
+        "warna_khas": (
+            "Merah cerah, merah kehijauan, hijau, atau kuning, tergantung varietasnya "
+            "(misalnya Fuji dan Red Delicious cenderung merah pekat, sementara Granny Smith "
+            "hijau terang dan Golden Delicious kuning keemasan). Warna biasanya tidak rata "
+            "sempurna — sering ada semburat/gradasi warna serta bintik-bintik kecil (lentisel) "
+            "di permukaannya."
+        ),
+        "ciri": (
+            "Bentuk bulat hingga agak lonjong, dengan lekukan (cekungan) yang cukup jelas di "
+            "bagian atas tempat tangkai menempel dan cekungan serupa (kadang lebih dangkal) di "
+            "bagian bawah. Kulitnya cenderung mulus, mengilap, dan tipis, tanpa pori-pori besar "
+            "yang mencolok. Saat dipegang terasa cukup padat dan berat untuk ukurannya, dan "
+            "permukaannya bisa terasa sedikit berlilin akibat lapisan alami buah."
+        ),
+        "tier": "apple",
+    },
+    "Orange": {
+        "nama": "Orange (Jeruk)",
+        "warna_khas": (
+            "Oranye pekat dan relatif merata di seluruh permukaan, kadang dengan semburat "
+            "kuning di bagian tertentu tergantung tingkat kematangan. Warnanya cenderung lebih "
+            "seragam dibanding apel, tanpa gradasi warna yang mencolok antar sisi buah."
+        ),
+        "ciri": (
+            "Bentuk bulat hampir sempurna dengan bagian atas-bawah yang lebih rata/tidak terlalu "
+            "berlekuk dibanding apel. Ciri paling khasnya ada di teksturnya: kulit berpori "
+            "(dimpled), sedikit kasar saat diraba, dan mengandung banyak kelenjar minyak kecil "
+            "yang membuat permukaannya terlihat bertekstur, bukan mengilap licin seperti apel. "
+            "Kulitnya juga relatif lebih tebal dan sedikit lebih empuk saat ditekan dibanding "
+            "kulit apel yang keras."
+        ),
+        "tier": "orange",
+    },
+}
+
+MODEL_INFO = {
+    "accuracy": 0.9313,
+    "f1": 0.9308,
+}
+
+# ----------------------------------------------------------------------------
+# TEMA (light & dark didefinisikan eksplisit, tidak bergantung tema bawaan Streamlit)
+# ----------------------------------------------------------------------------
+THEMES = {
+    "light": {
+        "bg": "#FBF7F0", "card": "#FFFFFF", "text": "#2A211C", "muted": "#7A6A5E",
+        "border": "#EFE2D3", "primary": "#B3451D", "primary_dark": "#6E2A11", "primary_text": "#FBF7F0",
+        "input_bg": "#FFFFFF", "track": "#F1E6D8",
+        "apple": "#DC2626", "orange": "#EA580C",
+    },
+    "dark": {
+        "bg": "#1C1613", "card": "#28201B", "text": "#F3E9DF", "muted": "#C4B2A2",
+        "border": "#40332A", "primary": "#E08A4E", "primary_dark": "#B3672F", "primary_text": "#1C1613",
+        "input_bg": "#231C18", "track": "#3A2E26",
+        "apple": "#F87171", "orange": "#FB923C",
+    },
+}
+
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = False
+if "page" not in st.session_state:
+    st.session_state.page = "diagnosis"
+
+t = THEMES["dark"] if st.session_state.dark_mode else THEMES["light"]
+
+# ----------------------------------------------------------------------------
+# STYLING — semua warna eksplisit, tidak mewarisi warna default Streamlit
+# ----------------------------------------------------------------------------
 st.markdown(
-    """
+    f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap');
 
-    html, body, [class*="css"]  { font-family: 'Poppins', sans-serif; }
+    html, body, [class*="css"], .stMarkdown, p, span, div {{ font-family: 'Work Sans', sans-serif; }}
+    h1, h2, h3, .hero-title {{ font-family: 'Fraunces', serif; }}
 
-    .hero {
-        background: linear-gradient(120deg, #EF4444 0%, #F97316 55%, #FACC15 100%);
-        padding: 2.2rem 2.4rem;
-        border-radius: 22px;
-        color: white;
-        margin-bottom: 1.6rem;
-        box-shadow: 0 12px 30px rgba(239, 68, 68, 0.25);
-    }
-    .hero h1 { margin: 0; font-size: 2.1rem; font-weight: 800; }
-    .hero p  { margin: 0.4rem 0 0 0; font-size: 1rem; opacity: 0.95; }
+    .stApp {{ background: {t['bg']} !important; overflow-x: hidden !important; }}
+    html, body {{ overflow-x: hidden !important; }}
+    .block-container {{ padding-top: 2rem; max-width: 100% !important; box-sizing: border-box !important; }}
 
-    .card {
-        background: white;
-        border-radius: 18px;
-        padding: 1.3rem 1.5rem;
-        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-        border: 1px solid rgba(15, 23, 42, 0.06);
-        margin-bottom: 1rem;
-    }
+    /* Paksa semua teks umum ikut warna tema kita */
+    .stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] {{
+        color: {t['text']} !important;
+    }}
 
-    .metric-pill {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 999px;
+    .hero {{ text-align: center; padding: 0.6rem 1rem 0.4rem 1rem; }}
+    .hero-title {{ font-size: 2.1rem; font-weight: 800; margin: 0.3rem 0 0.1rem 0; color: {t['primary']} !important; }}
+    .hero-tagline {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: {t['muted']} !important; margin-bottom: 0.5rem; }}
+    .hero-sub {{ font-size: 0.98rem; font-weight: 500; color: {t['muted']} !important; max-width: 480px; margin: 0 auto; line-height: 1.55; }}
+
+    .steps {{ display: flex; justify-content: center; gap: 0.5rem; margin: 1.2rem 0 1.4rem 0; flex-wrap: wrap; }}
+    .step {{ display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: {t['muted']} !important;
+             padding: 0.4rem 0.9rem; border-radius: 20px; background: {t['track']}; }}
+    .step.active {{ background: {t['primary']}; color: {t['primary_text']} !important; font-weight: 600; }}
+    .step-num {{ width: 20px; height: 20px; border-radius: 50%; background: rgba(127,127,127,0.25);
+                 display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; }}
+
+    .card {{ background: {t['card']}; border: 1px solid {t['border']}; border-radius: 14px;
+             padding: 1.3rem 1.5rem; margin-bottom: 1rem; color: {t['text']} !important; font-size: 1rem; }}
+    .card b {{ color: {t['text']} !important; font-weight: 800; font-size: 1.05rem; }}
+    .card p, .card li {{ color: {t['text']} !important; font-weight: 500; }}
+    .tips-list {{ font-size: 0.95rem; margin: 0.4rem 0 0 0; padding-left: 1.1rem; }}
+    .tips-list li {{ margin-bottom: 0.3rem; }}
+
+    .result-card {{ border-radius: 14px; padding: 1.5rem 1.6rem; margin: 0.4rem 0 1rem 0; text-align: center; }}
+    .result-label {{ font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; opacity: 0.95; text-transform: uppercase; }}
+    .result-name {{ font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 800; margin: 0.3rem 0; }}
+    .result-conf {{ font-size: 1.05rem; font-weight: 600; opacity: 0.97; }}
+    .result-conf-track {{
+        margin: 0.75rem auto 0 auto; max-width: 320px; height: 8px; border-radius: 6px;
+        background: rgba(255,255,255,0.32); overflow: hidden;
+    }}
+    .result-conf-fill {{ height: 100%; border-radius: 6px; background: #FFFFFF; }}
+
+    /* Kartu "Karakteristik Visual" di halaman hasil: judul di luar kartu, lalu dua kartu
+       (Warna, Bentuk) sejajar, dan satu kartu penuh (Tekstur Permukaan) di bawahnya. */
+    .visual-title {{ font-size: 1rem; margin: 1.4rem 0 0.8rem 0.2rem; }}
+    .visual-row {{ display: flex; gap: 1rem; margin-bottom: 1rem; }}
+    .visual-row .visual-card {{ flex: 1 1 0; min-width: 0; margin-bottom: 0; }}
+    .visual-card-full {{ margin-bottom: 1rem; }}
+    .visual-header {{
+        font-weight: 700; font-size: 0.92rem; letter-spacing: 0.3px;
+        color: {t['primary']} !important; margin-bottom: 0.5rem;
+    }}
+    .visual-tags {{ font-weight: 700; font-size: 0.9rem; margin-bottom: 0.6rem; color: {t['text']} !important; }}
+    .visual-card p, .visual-card-full p {{
+        margin: 0; font-size: 0.88rem; line-height: 1.55; color: {t['text']} !important;
+    }}
+    @media (max-width: 480px) {{
+        .visual-row {{ flex-direction: column; }}
+    }}
+    /* Grid 2 kolom untuk kartu "Konfigurasi Model" di halaman Tentang */
+    .config-grid {{
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem;
+    }}
+    .config-item .config-label {{
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+        color: {t['muted']} !important; margin-bottom: 0.2rem;
+    }}
+    .config-item .config-value {{ font-size: 0.95rem; font-weight: 700; color: {t['text']} !important; }}
+    @media (max-width: 420px) {{
+        .config-grid {{ grid-template-columns: 1fr; }}
+    }}
+    .note-block {{ padding: 0.2rem 0.3rem 1rem 0.3rem; }}
+    .note-block p {{ color: {t['muted']} !important; font-size: 0.85rem; line-height: 1.55; }}
+    .note-block b {{ color: {t['muted']} !important; font-size: 0.85rem; letter-spacing: 0.4px; }}
+
+    .barrow {{ display: flex; align-items: center; margin: 0.35rem 0; gap: 0.6rem; }}
+    .barrow-label {{ width: 100px; font-size: 0.8rem; color: {t['text']} !important; flex-shrink: 0; }}
+    .barrow-track {{ flex: 1; background: {t['track']}; border-radius: 6px; height: 9px; overflow: hidden; }}
+    .barrow-fill {{ height: 100%; border-radius: 6px; }}
+    .barrow-pct {{ width: 44px; text-align: right; font-size: 0.78rem; color: {t['text']} !important; }}
+
+    /* Komponen native Streamlit: uploader, tombol, expander */
+    [data-testid="stFileUploaderDropzone"] {{
+        background: {t['input_bg']} !important; border: 2px dashed {t['border']} !important; border-radius: 12px !important;
+        padding: 1rem 1.2rem !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        /* Layout D: tombol Upload di kiri, blok teks (2 baris) di kanan, sejajar horizontal
+           dan rata tengah secara vertikal. flex-wrap + min-width:0 di bawah WAJIB ada supaya
+           kalau ruang tidak cukup (HP sempit), blok teks membungkus/menyusut alih-alih
+           memaksa seluruh halaman melebar & terpotong horizontal. */
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 0.9rem !important;
+        overflow: hidden !important;
+    }}
+    [data-testid="stFileUploaderDropzone"] button {{
+        background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
+        font-weight: 700 !important; border-radius: 8px !important;
+        order: 1 !important;
+        flex-shrink: 0 !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        order: 2 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        flex: 1 1 160px !important;
+        max-width: 100% !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"]::before,
+    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+    }}
+    /* Baris 1: judul besar/tebal "Drag & drop your image here" (menggantikan tampilan judul
+       bawaan Streamlit). Baris 2: keterangan tipe & ukuran file — teks asli dari Streamlit
+       disembunyikan lalu diganti dengan urutan kata custom lewat ::after, karena urutan kata
+       yang diminta ("JPG, PNG • Max 200MB") berbeda dari teks bawaan. */
+    [data-testid="stFileUploaderDropzoneInstructions"]::before {{
+        content: "Pilih atau seret gambar untuk diunggah";
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: {t['text']} !important;
+        margin-bottom: 0.2rem;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"] span {{
+        font-size: 0 !important; /* sembunyikan teks asli, layout tetap dipertahankan lewat ::after di bawah */
+        line-height: 0 !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
+        content: "JPG, PNG • Max 200MB";
+        display: block;
+        font-weight: 500;
         font-size: 0.78rem;
-        font-weight: 600;
-        color: white;
-        margin-right: 0.4rem;
-    }
+        color: {t['muted']} !important;
+    }}
+    [data-testid="stFileUploaderDropzone"] * {{ color: {t['text']} !important; }}
+    [data-testid="stFileUploader"] {{ max-width: 100% !important; overflow-x: hidden !important; }}
+    /* Ikon & label DI DALAM tombol "Upload"/"Browse files" sempat ikut ketiban rule "*" di atas
+       (jadi teks gelap di atas tombol oranye = kontras rendah). Paksa semua elemen anak tombol
+       ini pakai warna terang supaya kontras terhadap latar oranye-nya. */
+    [data-testid="stFileUploaderDropzone"] button *,
+    [data-testid="stFileUploaderDropzone"] button svg {{
+        color: {t['primary_text']} !important;
+        fill: {t['primary_text']} !important;
+    }}
+    .stButton button, .stDownloadButton button {{
+        background: {t['primary']} !important; color: {t['primary_text']} !important;
+        border: none !important; border-radius: 10px !important;
+    }}
+    [data-testid="stExpander"] {{ background: {t['card']} !important; border: 1px solid {t['border']} !important; border-radius: 12px !important; overflow: hidden !important; }}
+    /* Header expander (summary) sempat kebawa warna gelap bawaan Streamlit saat dibuka/hover/focus
+       karena kita cuma set background di container luar, bukan di summary-nya sendiri. Paksa
+       semua state (tertutup, hover, fokus, terbuka) pakai warna kartu tema kita. */
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary:hover,
+    [data-testid="stExpander"] summary:focus,
+    [data-testid="stExpander"] details[open] summary,
+    [data-testid="stExpander"] details summary {{
+        background: {t['card']} !important;
+    }}
+    [data-testid="stExpanderDetails"] {{ background: {t['card']} !important; }}
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{ color: {t['text']} !important; }}
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary p, [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary div {{ font-weight: 700 !important; font-size: 1.05rem !important; }}
+    [data-testid="stExpander"] p, [data-testid="stExpander"] li, [data-testid="stExpander"] span {{ color: {t['text']} !important; }}
 
-    .result-badge {
-        font-size: 2.6rem;
-        font-weight: 800;
-        margin: 0.2rem 0;
-    }
+    /* Perkuat kontras teks tombol (beberapa versi Streamlit bungkus label di elemen anak) */
+    .stButton button p, .stButton button div, .stButton button span {{ color: {t['primary_text']} !important; font-weight: 600 !important; }}
 
-    .confidence-track {
-        width: 100%;
-        height: 14px;
-        border-radius: 999px;
-        background: #F1F5F9;
-        overflow: hidden;
-        margin-top: 0.4rem;
-    }
-    .confidence-fill {
-        height: 100%;
-        border-radius: 999px;
-        transition: width 0.6s ease;
-    }
+    .scroll-box {{ max-height: 380px; overflow-y: auto; padding-right: 6px; }}
 
-    .footer-note {
-        text-align: center;
-        color: #94A3B8;
-        font-size: 0.82rem;
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid #E2E8F0;
-    }
+    .preview-wrap img {{ border-radius: 12px; }}
 
-    section[data-testid="stSidebar"] {
-        background: #0F172A;
-    }
-    section[data-testid="stSidebar"] h1, 
-    section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3, 
-    section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] span, 
-    section[data-testid="stSidebar"] label { 
-        color: #E2E8F0 !important; 
-    }
+    /* Sidebar navigasi */
+    section[data-testid="stSidebar"] {{ background: {t['card']} !important; border-right: 1px solid {t['border']}; }}
+    /* Tombol untuk membuka kembali sidebar saat sedang ditutup — pastikan selalu terlihat
+       (kadang ikonnya jadi transparan/senada background sehingga sulit ditemukan). Menyasar
+       beberapa testid sekaligus karena namanya berbeda antar versi Streamlit. */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid*="Sidebar"][data-testid*="ollaps"],
+    [aria-label*="sidebar" i],
+    [aria-label*="Sidebar" i] {{
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+        background: {t['card']} !important;
+        border: 1px solid {t['border']} !important;
+        border-radius: 8px !important;
+    }}
+    [data-testid="collapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] svg,
+    button[data-testid="stSidebarCollapseButton"] svg,
+    [data-testid*="Sidebar"][data-testid*="ollaps"] svg,
+    [aria-label*="sidebar" i] svg,
+    [aria-label*="Sidebar" i] svg {{
+        fill: {t['primary']} !important;
+        color: {t['primary']} !important;
+        opacity: 1 !important;
+    }}
+    section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] div.sidebar-brand {{ color: {t['text']} !important; }}
+    .sidebar-brand {{ font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 800; padding: 0.3rem 0 1rem 0; text-align: center; }}
+    section[data-testid="stSidebar"] hr {{ border-color: {t['border']} !important; border-top: 1px solid {t['border']} !important; opacity: 1 !important; margin: 1rem 0 !important; }}
 
-    /* Style file uploader agar bersih, jelas, dan kontras rapi */
-    [data-testid="stFileUploader"] section {
-        background-color: #FFFFFF !important;
-        border: 2px dashed #CBD5E1 !important;
-        border-radius: 14px !important;
-        padding: 1.2rem !important;
-    }
-    [data-testid="stFileUploader"] section:hover {
-        border-color: #F97316 !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"] {
-        color: #475569 !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"] * {
-        color: #475569 !important;
-    }
-    /* Chip file yang sudah diunggah */
-    [data-testid="stFileUploaderFileData"] {
-        background-color: #F1F5F9 !important;
-        border-radius: 10px !important;
-        border: 1px solid #E2E8F0 !important;
-        padding: 0.4rem 0.6rem !important;
-    }
-    [data-testid="stFileUploaderFileData"] * {
-        color: #1E293B !important;
-    }
+    /* Pastikan konten sidebar (termasuk tombol) benar-benar rata kiri-kanan penuh, tanpa celah di sisi kanan */
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"],
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+    section[data-testid="stSidebar"] [data-testid="element-container"],
+    section[data-testid="stSidebar"] [data-testid="stButton"] {{
+        width: 100% !important;
+    }}
 
-    /* Outer feature card styling */
-    .feature-box {
-        background: white;
-        border-radius: 18px;
-        padding: 1.3rem 1.5rem;
-        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        margin-bottom: 1.2rem;
-    }
-    .feature-box-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #1E293B;
-        margin-bottom: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .subcard {
-        background: #F8FAFC;
-        border-radius: 12px;
-        padding: 1rem 1.1rem;
-        border: 1px solid #E2E8F0;
-        height: 100%;
-    }
-    .subcard-tag {
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: #C2410C;
-        margin-bottom: 0.25rem;
-    }
-    .subcard-subtitle {
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: #0F172A;
-        margin-bottom: 0.35rem;
-    }
-    .subcard-desc {
-        font-size: 0.8rem;
-        color: #475569;
-        line-height: 1.45;
-        margin: 0;
-    }
-    .image-preview-container {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 0.8rem;
-    }
+    /* Tombol nav default (tidak aktif): transparan, teks ikut warna tema, rata kiri, lebar penuh */
+    section[data-testid="stSidebar"] .stButton button {{
+        display: flex !important;
+        background: transparent !important; color: {t['text']} !important; border: none !important;
+        text-align: left !important; justify-content: flex-start !important; align-items: center !important;
+        font-weight: 500 !important;
+        padding: 0.5rem 0.7rem !important; border-radius: 8px !important; box-shadow: none !important;
+        width: 100% !important; box-sizing: border-box !important; margin: 0 !important;
+    }}
+    /* Wildcard: paksa SEMUA elemen anak di dalam tombol (apapun tag/testid-nya, termasuk
+       stMarkdownContainer bawaan Streamlit) ikut rata kiri & lebar penuh, tanpa terkecuali */
+    section[data-testid="stSidebar"] .stButton button * {{
+        color: {t['text']} !important; font-weight: 500 !important;
+        text-align: left !important; justify-content: flex-start !important;
+        width: 100% !important; display: flex !important;
+    }}
+
+    /* Hover pada tombol nav tidak aktif: hanya ganti background, teks TETAP warna tema (bukan putih) */
+    section[data-testid="stSidebar"] .stButton button:hover {{ background: {t['track']} !important; }}
+    section[data-testid="stSidebar"] .stButton button:hover p,
+    section[data-testid="stSidebar"] .stButton button:hover div,
+    section[data-testid="stSidebar"] .stButton button:hover span {{ color: {t['text']} !important; }}
+
+    /* Tombol nav aktif (primary): background warna utama, teks kontras terhadap warna utama itu */
+    section[data-testid="stSidebar"] button[kind="primary"] {{ background: {t['primary_dark']} !important; justify-content: flex-start !important; }}
+    section[data-testid="stSidebar"] button[kind="primary"] * {{
+        color: {t['primary_text']} !important; font-weight: 700 !important;
+        text-align: left !important; justify-content: flex-start !important;
+        width: 100% !important; display: flex !important;
+    }}
+
+    /* Hover pada tombol nav aktif: tetap kontras, tidak ikut jadi putih-di-atas-terang */
+    section[data-testid="stSidebar"] button[kind="primary"]:hover {{ background: {t['primary']} !important; }}
+    section[data-testid="stSidebar"] button[kind="primary"]:hover p,
+    section[data-testid="stSidebar"] button[kind="primary"]:hover div,
+    section[data-testid="stSidebar"] button[kind="primary"]:hover span {{ color: {t['primary_text']} !important; }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# --------------------------------------------------------------------------------------
-# MODEL LOADING (cached — optimisation: avoids re-loading weights on every rerun)
-# --------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# MODEL
+# ----------------------------------------------------------------------------
 @st.cache_resource(show_spinner=False)
-def load_model(path: str):
-    if not Path(path).exists():
+def load_model():
+    if not Path(MODEL_PATH).exists():
         return None
-    return tf.keras.models.load_model(path, compile=False)
+    return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 
-@st.cache_data(show_spinner=False)
-def preprocess_image(image_bytes: bytes) -> np.ndarray:
-    """Resize to 128x128 and scale to [0,1], matching the notebook's preprocessing."""
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    img = img.resize((IMG_SIZE, IMG_SIZE))
-    arr = np.array(img, dtype=np.float32) / 255.0
-    return np.expand_dims(arr, axis=0), img
-
-
-def predict(model, batch: np.ndarray):
+def predict(image: Image.Image):
+    model = load_model()
+    img = image.convert("RGB").resize(IMG_SIZE)
+    arr = np.array(img).astype("float32") / 255.0
+    batch = np.expand_dims(arr, axis=0)
     prob_orange = float(model.predict(batch, verbose=0)[0][0])
-    label = "Orange" if prob_orange > 0.5 else "Apple"
-    confidence = prob_orange if prob_orange > 0.5 else 1 - prob_orange
-    return label, confidence, prob_orange
+    return {"Apple": 1 - prob_orange, "Orange": prob_orange}
 
 
-# --------------------------------------------------------------------------------------
-# SIDEBAR
-# --------------------------------------------------------------------------------------
-with st.sidebar:
-    st.markdown("### 🍏 Menu")
-    mode = st.radio(
-        "Mode prediksi",
-        ["Bandingkan kedua model", "Custom CNN saja", "MobileNetV2 saja"],
-        index=0,
+def analyze_color_profile(image: Image.Image) -> dict:
+    """Analisis warna dominan gambar sebagai indikator visual pendukung prediksi."""
+    small = image.convert("RGB").resize((64, 64))
+    hsv = np.array(small.convert("HSV"), dtype=np.float32)
+    hue = hsv[..., 0] * (360.0 / 255.0)
+    sat = hsv[..., 1] / 255.0
+    val = hsv[..., 2] / 255.0
+
+    mask = (sat > 0.25) & (val > 0.25)
+    if mask.sum() < 20:
+        mask = np.ones_like(sat, dtype=bool)
+
+    mean_hue = float(hue[mask].mean())
+
+    if mean_hue < 15 or mean_hue >= 345:
+        label, desc = "merah", "merah cerah khas apel"
+    elif mean_hue < 45:
+        label, desc = "oranye", "oranye pekat khas jeruk"
+    elif mean_hue < 70:
+        label, desc = "kuning-oranye", "kuning kecokelatan"
+    elif mean_hue < 160:
+        label, desc = "hijau", "hijau, seperti apel varietas hijau"
+    else:
+        label, desc = "campuran", "campuran warna yang kurang khas"
+
+    return {"hue": mean_hue, "label": label, "desc": desc}
+
+
+VISUAL_INFO = {
+    "Apple": {
+        "bentuk_tags": "Bulat • Agak lonjong",
+        "bentuk_desc": (
+            "Proporsi dan kontur buah memberikan bentuk yang khas, terutama pada bagian atas "
+            "dan bawah buah."
+        ),
+        "tekstur_tags": "Halus • Mengilap • Sedikit berlilin",
+        "tekstur_desc": (
+            "Kondisi permukaan kulit dapat membantu membedakan karakter visual buah, terutama "
+            "dari pantulan cahaya dan tampilan kulit pada gambar."
+        ),
+        "warna_tags": "Merah • Hijau • Kuning",
+        "warna_desc": "Perbedaan warna dapat muncul karena varietas serta tingkat kematangan buah yang berbeda.",
+    },
+    "Orange": {
+        "bentuk_tags": "Bulat • Rata di kedua ujung",
+        "bentuk_desc": (
+            "Proporsi dan kontur buah menunjukkan bentuk yang cenderung simetris, dengan bagian "
+            "atas dan bawah yang lebih rata dibanding apel."
+        ),
+        "tekstur_tags": "Berpori • Sedikit kasar • Kulit lebih tebal",
+        "tekstur_desc": (
+            "Kondisi permukaan kulit membantu membedakan karakter visual buah, terutama dari "
+            "tekstur pori dan pantulan cahaya yang lebih redup dibanding apel."
+        ),
+        "warna_tags": "Oranye • Kuning kecokelatan",
+        "warna_desc": "Perbedaan warna dapat muncul karena tingkat kematangan buah, meski jeruk umumnya lebih merata dibanding apel.",
+    },
+}
+
+
+def build_visual_texts(label: str, color_info: dict) -> dict:
+    v = VISUAL_INFO[label]
+    warna_desc = (
+        f"Warna dominan pada gambar terdeteksi {color_info['label']} ({color_info['desc']}). "
+        f"{v['warna_desc']}"
     )
-    st.divider()
-    threshold = st.slider(
-        "Ambang keputusan (decision threshold)",
-        min_value=0.30, max_value=0.70, value=0.50, step=0.01,
-        help="Probabilitas > threshold → diprediksi sebagai Orange. Geser untuk melihat "
-             "efek trade-off precision/recall secara interaktif (fitur eksplorasi tambahan).",
-    )
-    st.divider()
-    st.markdown("### ℹ️ Tentang Proyek")
-    st.caption(
-        "Klasifikasi citra biner **Apple vs Orange** menggunakan dua pendekatan: "
-        "Custom CNN (from scratch) dan MobileNetV2 (transfer learning), "
-        "dilatih pada dataset 796 gambar 128×128."
-    )
-    st.markdown("**Dibuat oleh:** Nada Thahira Sosa · Kode CaAs 2601")
+    return {
+        "warna_tags": v["warna_tags"],
+        "warna_desc": warna_desc,
+        "bentuk_tags": v["bentuk_tags"],
+        "bentuk_desc": v["bentuk_desc"],
+        "tekstur_tags": v["tekstur_tags"],
+        "tekstur_desc": v["tekstur_desc"],
+    }
 
-# --------------------------------------------------------------------------------------
-# HERO HEADER
-# --------------------------------------------------------------------------------------
-st.markdown(
-    """
-    <div class="hero">
-        <h1>🍎 Apple vs Orange Classifier 🍊</h1>
-        <p>Unggah foto apel atau jeruk, lalu bandingkan hasil prediksi Custom CNN vs MobileNetV2 secara langsung.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
 
-tab_predict, tab_compare, tab_about = st.tabs(["🔍 Prediksi", "📊 Perbandingan Model", "📄 Tentang & Versi"])
-
-# --------------------------------------------------------------------------------------
-# TAB 1 — PREDICT
-# --------------------------------------------------------------------------------------
-with tab_predict:
-    col_upload, col_result = st.columns([1, 1.2], gap="large")
-
-    with col_upload:
-        st.markdown("<div class='feature-box'>", unsafe_allow_html=True)
-        st.markdown("<div class='feature-box-title'>📤 1. Unggah Gambar</div>", unsafe_allow_html=True)
-        uploaded = st.file_uploader(
-            "Format didukung: JPG, JPEG, PNG",
-            type=["jpg", "jpeg", "png"],
-            label_visibility="collapsed",
+def build_interpretation_text(label: str, confidence: float) -> str:
+    if confidence >= 0.90:
+        return (
+            f"Tingkat keyakinan yang sangat tinggi ini menunjukkan kombinasi warna, bentuk, dan tekstur "
+            f"pada gambar sangat konsisten dengan karakteristik kelas {label}. Hasil klasifikasi pada "
+            f"tingkat ini dapat dianggap cukup andal untuk digunakan sebagai acuan."
         )
-        if uploaded is not None:
-            # Preview lebih ringkas (max 220px) agar muat dalam 1 layar bersama tombol klasifikasi
-            col_p1, col_p2, col_p3 = st.columns([1, 2, 1])
-            with col_p2:
-                st.image(uploaded, caption="Konfirmasi Foto", width=200)
-            
-            btn_classify = st.button("🚀 Mulai Klasifikasi", type="primary", use_container_width=True)
-        else:
-            st.info("Unggah gambar apel atau jeruk untuk memulai konfirmasi dan prediksi.")
-            btn_classify = False
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_result:
-        st.markdown("<div class='feature-box'>", unsafe_allow_html=True)
-        st.markdown("<div class='feature-box-title'>🎯 2. Hasil Prediksi</div>", unsafe_allow_html=True)
-
-        if uploaded is not None:
-            if "has_classified" not in st.session_state:
-                st.session_state.has_classified = False
-            if btn_classify:
-                st.session_state.has_classified = True
-
-            image_bytes = uploaded.getvalue()
-            batch, pil_img = preprocess_image(image_bytes)
-
-            active_models = []
-            if mode in ("Bandingkan kedua model", "Custom CNN saja"):
-                active_models.append("Custom CNN")
-            if mode in ("Bandingkan kedua model", "MobileNetV2 saja"):
-                active_models.append("MobileNetV2 (Transfer Learning)")
-
-            predicted_labels = []
-            for name in active_models:
-                model = load_model(MODEL_FILES[name])
-                info = MODEL_METRICS[name]
-
-                st.markdown(f"<div class='card' style='box-shadow:none; border:1px solid #E2E8F0; margin-bottom:0.8rem;'>", unsafe_allow_html=True)
-                st.markdown(f"**{name}**")
-
-                if model is None:
-                    st.warning(
-                        f"File model `{MODEL_FILES[name]}` tidak ditemukan di folder deploy. "
-                        "Pastikan file .h5 hasil training berada di direktori yang sama dengan app.py."
-                    )
-                else:
-                    t0 = time.time()
-                    prob_orange = float(model.predict(batch, verbose=0)[0][0])
-                    latency = (time.time() - t0) * 1000
-                    label = "Orange" if prob_orange > threshold else "Apple"
-                    confidence = prob_orange if label == "Orange" else 1 - prob_orange
-                    color = CLASS_COLOR[label]
-                    predicted_labels.append((label, confidence))
-
-                    st.markdown(
-                        f"<div class='result-badge' style='color:{color}; font-size:2.1rem;'>"
-                        f"{CLASS_EMOJI[label]} {label}</div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f"<div class='confidence-track'>"
-                        f"<div class='confidence-fill' style='width:{confidence*100:.1f}%; background:{color};'></div>"
-                        f"</div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.caption(f"Keyakinan model: **{confidence*100:.2f}%** · waktu inferensi ≈ {latency:.0f} ms")
-
-                st.markdown("</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(
-                "<div style='color:#64748B; font-size:0.9rem; padding:1.5rem; text-align:center;'>"
-                "Belum ada gambar yang diunggah. Silakan unggah foto pada panel di sebelah kiri.</div>",
-                unsafe_allow_html=True,
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # Box Karakteristik Visual & Interpretasi (Judul berada di dalam kotak)
-    if uploaded is not None:
-        main_label = predicted_labels[0][0] if predicted_labels else "Apple"
-        main_conf = predicted_labels[0][1] if predicted_labels else 0.9
-
-        st.markdown(
-            """
-            <div class="feature-box">
-                <div class="feature-box-title">🔍 Karakteristik Visual & Analisis Fitur</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                    <div class="subcard">
-                        <div class="subcard-tag">◆ WARNA</div>
-                        <div class="subcard-subtitle">Merah • Hijau • Kuning / Oranye</div>
-                        <p class="subcard-desc">Distribusi warna pada citra dianalisis oleh filter konvolusi. Variasi rona dapat dipengaruhi oleh kematangan buah dan pencahayaan foto.</p>
-                    </div>
-                    <div class="subcard">
-                        <div class="subcard-tag">■ BENTUK</div>
-                        <div class="subcard-subtitle">Bulat • Agak lonjong / Simetris</div>
-                        <p class="subcard-desc">Kontur tepi dan proporsi geometri buah memberikan fitur spasial yang membedakan struktur lekukan apel dengan kebulatan jeruk.</p>
-                    </div>
-                    <div class="subcard" style="grid-column: 1 / -1;">
-                        <div class="subcard-tag">▲ TEKSTUR PERMUKAAN</div>
-                        <div class="subcard-subtitle">Halus • Mengilap • Sedikit berpori / berlilin</div>
-                        <p class="subcard-desc">Kondisi permukaan kulit dan pantulan kilau cahaya membantu feature extractor mengenali pori khas kulit jeruk atau lapisan lilin apel.</p>
-                    </div>
-                </div>
-                <div class="subcard" style="background:#FFFFFF; border-left: 4px solid #F97316;">
-                    <div class="subcard-tag" style="color:#0F172A; font-size:0.8rem;">§ INTERPRETASI PREDIKSI</div>
-                    <p class="subcard-desc" style="font-size:0.85rem; color:#334155;">
-                        Tingkat keyakinan model tergolong tinggi. Fitur visual yang diekstraksi dari bobot konvolusi selaras dengan karakteristik kelas yang diprediksi. Pemeriksaan silang tetap disarankan untuk citra dengan pencahayaan ekstrem atau sudut pandang yang tidak umum.
-                    </p>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    elif confidence >= LOW_CONFIDENCE_THRESHOLD:
+        return (
+            f"Tingkat keyakinan ini tergolong cukup tinggi, meskipun sebagian ciri visual pada gambar "
+            f"mungkin tidak sepenuhnya khas untuk kelas {label}. Pemeriksaan ulang secara manual tetap "
+            f"disarankan apabila hasil ini digunakan untuk keputusan yang penting."
+        )
+    else:
+        return (
+            f"Tingkat keyakinan yang tergolong rendah ini menunjukkan ciri visual pada gambar kurang "
+            f"sesuai secara meyakinkan dengan salah satu kelas. Hasil klasifikasi pada tingkat ini "
+            f"sebaiknya tidak dijadikan acuan utama."
         )
 
-# --------------------------------------------------------------------------------------
-# TAB 2 — MODEL COMPARISON (static, from notebook evaluation)
-# --------------------------------------------------------------------------------------
-with tab_compare:
-    st.markdown("#### Performa pada Test Set (160 gambar, 80 Apple + 80 Orange)")
-    c1, c2 = st.columns(2, gap="large")
 
-    for col, name in zip([c1, c2], MODEL_METRICS.keys()):
-        info = MODEL_METRICS[name]
-        with col:
-            st.markdown(f"<div class='card'>", unsafe_allow_html=True)
-            st.markdown(
-                f"<span class='metric-pill' style='background:{info['color']}'>{name}</span>",
-                unsafe_allow_html=True,
-            )
-            m1, m2 = st.columns(2)
-            m1.metric("Accuracy", f"{info['accuracy']*100:.2f}%")
-            m2.metric("F1 Score", f"{info['f1']:.4f}")
-            m3, m4 = st.columns(2)
-            m3.metric("Total Params", info["params"])
-            m4.metric("Trainable Params", info["trainable"])
-            st.caption(f"Epochs sampai early-stopping: **{info['epochs']}**")
-            st.write(info["note"])
-            st.markdown("</div>", unsafe_allow_html=True)
+def render_steps(active: int):
+    labels = ["Upload & Konfirmasi", "Lihat Hasil"]
+    html = '<div class="steps">'
+    for i, label in enumerate(labels, start=1):
+        cls = "active" if i == active else ""
+        html += f'<div class="step {cls}"><span class="step-num">{i}</span>{label}</div>'
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
 
+
+# ----------------------------------------------------------------------------
+# HALAMAN: DIAGNOSIS (KLASIFIKASI)
+# ----------------------------------------------------------------------------
+def render_diagnosis():
     st.markdown(
-        """
-        <div class="card">
-        <b>Kesimpulan:</b> MobileNetV2 (Transfer Learning) unggul pada kedua metrik utama
-        (Accuracy 95,63% vs 93,13%; F1 Score 0,9554 vs 0,9308) dan menjadi <b>model terbaik</b>
-        yang direkomendasikan untuk produksi, meskipun Custom CNN tetap kompetitif dengan
-        ukuran model ~15× lebih kecil — cocok jika prioritasnya adalah efisiensi deployment.
+        f"""
+        <div class="hero">
+            <div style="font-size:1.9rem;">🍎🍊</div>
+            <div class="hero-title">FruitID</div>
+            <div class="hero-tagline">Apple & Orange Recognition</div>
+            <div class="hero-sub">Unggah foto buah Anda untuk mengetahui apakah buah tersebut termasuk apel atau jeruk,
+            lengkap dengan alasan di balik prediksinya.</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-# --------------------------------------------------------------------------------------
-# TAB 3 — ABOUT & VERSIONING
-# --------------------------------------------------------------------------------------
-with tab_about:
-    st.markdown("#### Tentang Aplikasi")
-    st.write(
-        "Aplikasi ini men-deploy dua model klasifikasi citra biner (Apple vs Orange) yang "
-        "dikembangkan pada Week 2–4: **Custom CNN** (dibangun dari nol) dan **MobileNetV2** "
-        "(transfer learning dari ImageNet). Pengguna dapat mengunggah gambar, memilih model "
-        "yang ingin digunakan, dan membandingkan hasil prediksi keduanya secara langsung."
+    model = load_model()
+    if model is None:
+        st.markdown(
+            f"""
+            <div class="card">
+            File model <code>{MODEL_PATH}</code> tidak ditemukan. Pastikan file .h5 hasil
+            training berada di root repo, sejajar dengan app.py.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    if "stage" not in st.session_state:
+        st.session_state.stage = 1
+    if "probs" not in st.session_state:
+        st.session_state.probs = None
+    if "image_bytes" not in st.session_state:
+        st.session_state.image_bytes = None
+
+    render_steps(st.session_state.stage)
+
+    if st.session_state.stage == 1:
+        uploaded = st.file_uploader(" ", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
+
+        if uploaded is None:
+            st.markdown(
+                """
+                <div class="card">
+                <b>Panduan Penggunaan</b>
+                <ol class="tips-list">
+                    <li>Klik kotak di atas, atau tarik dan lepas foto buah.</li>
+                    <li>Gunakan foto <b>close-up satu buah</b> dengan pencahayaan cukup dan latar polos.</li>
+                    <li>Konfirmasi gambar sebelum sistem melakukan klasifikasi dan menampilkan rekomendasi penanganan.</li>
+                </ol>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            image = Image.open(uploaded)
+
+            col_l, col_mid, col_r = st.columns([1, 2, 1])
+            with col_mid:
+                st.markdown('<div class="preview-wrap">', unsafe_allow_html=True)
+                st.image(image, use_container_width=True, caption="Preview foto")
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            st.markdown(
+                """
+                <div class="card" style="text-align:center;">
+                <div style="font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">Konfirmasi Foto</div>
+                <div>Periksa foto sebelum memulai klasifikasi.<br>
+                Pastikan buah terlihat jelas dan fokus. Jika ingin mengganti foto, klik tombol × di bagian atas.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            if st.button("Mulai Klasifikasi →", type="primary", use_container_width=True):
+                with st.spinner("Sedang menganalisis buah..."):
+                    probs = predict(image)
+                    color_info = analyze_color_profile(image)
+                st.session_state.image_bytes = uploaded.getvalue()
+                st.session_state.probs = probs
+                st.session_state.color_info = color_info
+                st.session_state.stage = 2
+                st.rerun()
+
+    elif st.session_state.stage == 2:
+        probs = st.session_state.probs
+        top_label = max(probs, key=probs.get)
+        confidence = probs[top_label]
+        info = FRUIT_INFO[top_label]
+        color = t[info["tier"]]
+
+        st.markdown(
+            f"""
+            <div class="result-card" style="background:{color}; color:#FFFFFF;">
+                <div class="result-label">Hasil Klasifikasi</div>
+                <div class="result-name">{info['nama']}</div>
+                <div class="result-conf">Tingkat keyakinan model: {confidence*100:.1f}%</div>
+                <div class="result-conf-track"><div class="result-conf-fill" style="width:{confidence*100:.1f}%;"></div></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if confidence < LOW_CONFIDENCE_THRESHOLD:
+            st.markdown(
+                """
+                <div class="card">
+                Keyakinan model cukup rendah untuk gambar ini. Coba gunakan foto dengan
+                pencahayaan lebih jelas dan latar belakang polos untuk hasil yang lebih akurat.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        color_info = st.session_state.color_info
+        visual = build_visual_texts(top_label, color_info)
+
+        st.markdown(
+            f"""
+            <div class="visual-title"><b>Karakteristik Visual</b></div>
+            <div class="visual-row">
+                <div class="card visual-card">
+                    <div class="visual-header">&#9670; WARNA</div>
+                    <div class="visual-tags">{visual['warna_tags']}</div>
+                    <p>{visual['warna_desc']}</p>
+                </div>
+                <div class="card visual-card">
+                    <div class="visual-header">&#9632; BENTUK</div>
+                    <div class="visual-tags">{visual['bentuk_tags']}</div>
+                    <p>{visual['bentuk_desc']}</p>
+                </div>
+            </div>
+            <div class="card visual-card-full">
+                <div class="visual-header">&#9650; TEKSTUR PERMUKAAN</div>
+                <div class="visual-tags">{visual['tekstur_tags']}</div>
+                <p>{visual['tekstur_desc']}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        interpretation = build_interpretation_text(top_label, confidence)
+        st.markdown(
+            f"""
+            <div class="card">
+                <b>&sect; Interpretasi</b>
+                <p style="margin:0.6rem 0 0;">{interpretation}</p>
+            </div>
+            <div class="note-block">
+                <b>&sect; Catatan</b>
+                <p style="margin:0.4rem 0 0;">
+                Nilai confidence yang ditampilkan merupakan keluaran probabilitas dari lapisan akhir
+                model, bukan ukuran probabilitas sebenarnya bahwa objek pada gambar merupakan buah
+                yang dimaksud. Nilai ini sebaiknya dipahami sebagai indikator relatif tingkat kepastian
+                model terhadap prediksinya, bukan sebagai jaminan kebenaran hasil klasifikasi.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        order = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)
+        bars = []
+        for cls_name, pct_val in order:
+            pct = pct_val * 100
+            bars.append(
+                f'<div class="barrow">'
+                f'<div class="barrow-label">{FRUIT_INFO[cls_name]["nama"].split(" ")[0]}</div>'
+                f'<div class="barrow-track"><div class="barrow-fill" style="width:{pct:.1f}%; background:{t[FRUIT_INFO[cls_name]["tier"]]};"></div></div>'
+                f'<div class="barrow-pct">{pct:.1f}%</div>'
+                f'</div>'
+            )
+        bars_html = "".join(bars)
+        st.markdown(
+            f"""
+            <div class="card">
+                <b>Distribusi Tingkat Keyakinan per Kelas</b>
+                <div style="margin-top:0.7rem;">{bars_html}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button("↻ Unggah Foto Lain", use_container_width=True):
+            st.session_state.stage = 1
+            st.session_state.image_bytes = None
+            st.session_state.probs = None
+            st.rerun()
+
+    st.caption("FruitID · Model: CNN Custom")
+
+
+# ----------------------------------------------------------------------------
+# HALAMAN: TENTANG APLIKASI
+# ----------------------------------------------------------------------------
+def render_about():
+    st.markdown('<div class="hero-title" style="text-align:left; font-size:1.6rem; margin-bottom:1rem;">Tentang Aplikasi</div>', unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div class="card">
+            <b>Tentang FruitID</b>
+            <p style="margin:0.5rem 0 0.4rem 0;">FruitID merupakan aplikasi untuk membantu
+            mengidentifikasi apakah sebuah foto buah adalah apel atau jeruk.</p>
+            <p style="margin:0;">Aplikasi ini memberikan alasan prediksi berbasis analisis warna
+            dominan gambar, agar hasil klasifikasi lebih mudah dipahami.</p>
+        </div>
+
+        <div class="card">
+            <b>Konfigurasi Model</b>
+            <p style="margin:0.5rem 0 0.9rem 0; font-weight:600;">Custom CNN (dibangun dari nol)</p>
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="config-label">Arsitektur</div>
+                    <div class="config-value">CNN VGG-style, 3 blok konvolusi</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Klasifikasi</div>
+                    <div class="config-value">Biner, 2 kelas</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Input</div>
+                    <div class="config-value">128 × 128 RGB</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Optimizer</div>
+                    <div class="config-value">Adam (lr 1e-4)</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Output</div>
+                    <div class="config-value">Apple / Orange</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Pembelajaran</div>
+                    <div class="config-value">Dilatih dari nol (scratch)</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.markdown("#### 🧾 Riwayat Versi (Versioning)")
-    st.table(
-        {
-            "Versi": ["v1.0", "v2.0", "v2.1 (Final)"],
-            "Tanggal": ["-", "-", "-"],
-            "Perubahan": [
-                "Rilis awal: unggah gambar + prediksi satu model (MobileNetV2), tampilan dasar Streamlit.",
-                "Menambahkan mode perbandingan dua model sekaligus, tab Perbandingan Model dengan metrik "
-                "kuantitatif, dan pewarnaan hasil per kelas.",
-                "Menambahkan slider decision threshold interaktif, caching model (optimisasi kecepatan), "
-                "indikator waktu inferensi, dan penyempurnaan UI (hero header, kartu, progress bar keyakinan).",
-            ],
-            "Screenshot": ["_(lampirkan tangkapan layar di sini)_"] * 3,
-        }
-    )
-    st.caption(
-        "Catatan: isi kolom Tanggal dan Screenshot sesuai riwayat deployment Anda yang sebenarnya "
-        "(mis. tangkapan layar Streamlit Cloud pada tiap versi)."
+    _, m1, m2, _ = st.columns([1, 2, 2, 1])
+    m1.metric("Accuracy", f"{MODEL_INFO['accuracy']*100:.2f}%")
+    m2.metric("F1 Score", f"{MODEL_INFO['f1']:.4f}")
+
+    st.markdown(
+        """
+        <div class="card">
+            <b>Informasi Aplikasi</b>
+            <p style="margin:0.6rem 0 0 0;">FruitID<br>Model: CNN Custom</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.markdown("#### 📦 Struktur File Deployment")
-    st.code(
-        "project/\n"
-        "├── app.py\n"
-        "├── requirements.txt\n"
-        "├── custom_cnn_model.h5\n"
-        "└── pretrained_mobilenetv2_model.h5",
-        language="text",
-    )
 
-st.markdown(
-    "<div class='footer-note'>Dibangun dengan Streamlit · TensorFlow/Keras · "
-    "Apple vs Orange Binary Classification Project</div>",
-    unsafe_allow_html=True,
-)
+# ----------------------------------------------------------------------------
+# SIDEBAR — NAVIGASI UTAMA
+# ----------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown('<div class="sidebar-brand">FruitID</div>', unsafe_allow_html=True)
+
+    if st.button("› Recognition", key="nav_diagnosis", use_container_width=True,
+                 type="primary" if st.session_state.page == "diagnosis" else "secondary"):
+        st.session_state.page = "diagnosis"
+        st.rerun()
+
+    if st.button("› Tentang Aplikasi", key="nav_about", use_container_width=True,
+                 type="primary" if st.session_state.page == "about" else "secondary"):
+        st.session_state.page = "about"
+        st.rerun()
+
+    st.markdown("---")
+    theme_label = "Mode: Gelap" if st.session_state.dark_mode else "Mode: Terang"
+    if st.button(f"◐ {theme_label}", key="theme_toggle_btn", use_container_width=True):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
+
+# ----------------------------------------------------------------------------
+# ROUTER
+# ----------------------------------------------------------------------------
+if st.session_state.page == "diagnosis":
+    render_diagnosis()
+else:
+    render_about()
