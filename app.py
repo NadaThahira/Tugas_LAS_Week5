@@ -1,7 +1,6 @@
 """
 FruitID — Apple & Orange Recognition
 Deployment model: CNN Custom
-Nada Thahira Sosa — 2601
 """
 
 from pathlib import Path
@@ -82,8 +81,9 @@ st.markdown(
     html, body, [class*="css"], .stMarkdown, p, span, div {{ font-family: 'Work Sans', sans-serif; }}
     h1, h2, h3, .hero-title {{ font-family: 'Fraunces', serif; }}
 
-    .stApp {{ background: {t['bg']} !important; }}
-    .block-container {{ padding-top: 2rem; }}
+    .stApp {{ background: {t['bg']} !important; overflow-x: hidden !important; }}
+    html, body {{ overflow-x: hidden !important; }}
+    .block-container {{ padding-top: 2rem; max-width: 100% !important; box-sizing: border-box !important; }}
 
     /* Paksa semua teks umum ikut warna tema kita */
     .stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"] {{
@@ -128,11 +128,15 @@ st.markdown(
         box-sizing: border-box !important;
         position: relative !important;
         /* Layout D: tombol Upload di kiri, blok teks (2 baris) di kanan, sejajar horizontal
-           dan rata tengah secara vertikal. */
+           dan rata tengah secara vertikal. flex-wrap + min-width:0 di bawah WAJIB ada supaya
+           kalau ruang tidak cukup (HP sempit), blok teks membungkus/menyusut alih-alih
+           memaksa seluruh halaman melebar & terpotong horizontal. */
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: wrap !important;
         align-items: center !important;
         gap: 0.9rem !important;
+        overflow: hidden !important;
     }}
     [data-testid="stFileUploaderDropzone"] button {{
         background: {t['primary']} !important; color: {t['primary_text']} !important; border: none !important;
@@ -146,6 +150,15 @@ st.markdown(
         align-items: flex-start !important;
         order: 2 !important;
         width: auto !important;
+        min-width: 0 !important;
+        flex: 1 1 160px !important;
+        max-width: 100% !important;
+    }}
+    [data-testid="stFileUploaderDropzoneInstructions"]::before,
+    [data-testid="stFileUploaderDropzoneInstructions"]::after {{
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
     }}
     /* Baris 1: judul besar/tebal "Drag & drop your image here" (menggantikan tampilan judul
        bawaan Streamlit). Baris 2: keterangan tipe & ukuran file — teks asli dari Streamlit
@@ -507,7 +520,7 @@ def render_diagnosis():
             st.session_state.probs = None
             st.rerun()
 
-    st.caption("FruitID · Model: CNN Custom · Nada Thahira Sosa — 2601")
+    st.caption("FruitID · Model: CNN Custom")
 
 
 # ----------------------------------------------------------------------------
@@ -544,7 +557,7 @@ def render_about():
         """
         <div class="card">
             <b>Informasi Aplikasi</b>
-            <p style="margin:0.6rem 0 0 0;">FruitID<br>Model: CNN Custom<br>Nada Thahira Sosa — 2601</p>
+            <p style="margin:0.6rem 0 0 0;">FruitID<br>Model: CNN Custom</p>
         </div>
         """,
         unsafe_allow_html=True,
