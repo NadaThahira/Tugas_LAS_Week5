@@ -842,10 +842,9 @@ def render_diagnosis():
             <div class="note-block">
                 <b>&sect; Catatan</b>
                 <p style="margin:0.4rem 0 0;">
-                Nilai confidence yang ditampilkan merupakan keluaran probabilitas dari lapisan akhir
-                model, bukan ukuran probabilitas sebenarnya bahwa objek pada gambar merupakan buah
-                yang dimaksud. Nilai ini sebaiknya dipahami sebagai indikator relatif tingkat kepastian
-                model terhadap prediksinya, bukan sebagai jaminan kebenaran hasil klasifikasi.
+                Angka persentase ini menunjukkan tingkat keyakinan aplikasi terhadap hasil penilaiannya
+                bukan bukti bahwa buah pada foto sudah pasti benar.
+                Nilai ini sebaiknya digunakan sebagai perkiraan pendukung, bukan kesimpulan yang mutlak.
                 </p>
             </div>
             """,
